@@ -1,15 +1,16 @@
 {
-  "name": "express-generator",
-  "description": "Express' application generator",
+  "name": "express-generator-plus",
+  "description": "Express' application generator (plus more!)",
   "version": "4.16.1",
-  "author": "TJ Holowaychuk <tj@vision-media.ca>",
+  "author": "Evan Klemen <ejklemen+expressjs@gmail.com>",
   "contributors": [
     "Aaron Heckmann <aaron.heckmann+github@gmail.com>",
     "Ciaran Jessup <ciaranj@gmail.com>",
     "Douglas Christopher Wilson <doug@somethingdoug.com>",
     "Guillermo Rauch <rauchg@gmail.com>",
     "Jonathan Ong <me@jongleberry.com>",
-    "Roman Shtylman <shtylman+expressjs@gmail.com>"
+    "Roman Shtylman <shtylman+expressjs@gmail.com>",
+    "Evan Klemen <ejklemen+expressjs@gmail.com>"
   ],
   "keywords": [
     "express",
@@ -22,7 +23,7 @@
     "app",
     "api"
   ],
-  "repository": "expressjs/generator",
+  "repository": "eklemen/generator",
   "license": "MIT",
   "dependencies": {
     "commander": "2.15.1",

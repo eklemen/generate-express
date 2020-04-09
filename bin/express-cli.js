@@ -131,7 +131,7 @@ inquirer
           'server': 'node ./dist/bin/www',
           'dev': 'NODE_ENV=development npm-run-all build server',
           'prod': 'NODE_ENV=production npm-run-all build server',
-          'transpile': 'babel ./server --out-dir dist',
+          'transpile': 'babel ./server --out-dir dist --copy-files',
           'clean': 'rimraf dist',
           'watch:dev': 'nodemon'
         },

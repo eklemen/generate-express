@@ -13,6 +13,11 @@ import <%- variable %> from '<%- localModules[variable] %>';
 
 const app = express();
 
+<% if (db) { -%>
+  // database setup
+  <%- db %>;
+<% } -%>
+
 <% if (view) { -%>
 // view engine setup
 <% if (view.render) { -%>
@@ -48,4 +53,4 @@ app.use(function(err, req, res, next) {
 });
 
 <% } -%>
-module.exports = app;
+export default app;

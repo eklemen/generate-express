@@ -7,6 +7,9 @@
 var app = require('../app');
 var debug = require('debug')('<%- name %>:server');
 var http = require('http');
+<% if (db) { -%>
+var db = require('../models');
+<% } -%>
 
 /**
  * Get port from environment and store in Express.

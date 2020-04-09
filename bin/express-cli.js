@@ -260,6 +260,8 @@ inquirer
       }
 
       // Database
+      www.locals.db = false
+      app.locals.db = false
       switch (program.database) {
         case 'mongojs':
           pkg.dependencies['mongojs'] = '^3.1.0'
@@ -275,7 +277,6 @@ const db = mongojs(dbUri, collections);
           pkg.dependencies['mysql2'] = '^1.6.4'
           pkg.dependencies['sequelize'] = '^4.41.2'
           app.locals.localModules.db = './models'
-          app.locals.db = false
           www.locals.db = `
 // Run sequelize before listen
 db.sequelize.sync({ force: true }).then(function() {
@@ -296,7 +297,11 @@ db.sequelize.sync({ force: true }).then(function() {
           app.locals.modules.mongoose = 'mongoose'
           app.locals.modules.logger = 'morgan'
           app.locals.uses.push("logger('dev')")
-          app.locals.db = "mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/mydb', { useNewUrlParser: true })"
+          app.locals.db = `
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost/mydb';
+const mongooseConfigs = { useNewUrlParser: true };
+mongoose.connect(mongoUri, mongooseConfigs)
+`
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/mongoose', dir + '/server/models', '*.js')
       }

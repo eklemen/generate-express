@@ -413,9 +413,9 @@ mongoose.connect(mongoUri, mongooseConfigs)
       console.log('   run the app:')
 
       if (launchedFromCmd()) {
-        console.log('     %s SET DEBUG=%s:* & npm start', prompt, name)
+        console.log('     %s npm start', prompt, name)
       } else {
-        console.log('     %s DEBUG=%s:* npm start', prompt, name)
+        console.log('     %s npm start', prompt, name)
       }
 
       console.log()

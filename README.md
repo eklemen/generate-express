@@ -1,4 +1,4 @@
-Express-Generator-Plus
+Generate Express
 
 #### Heavily inspired by
 [Express'](https://www.npmjs.com/package/express) application generator.
@@ -22,12 +22,12 @@ Express-Generator-Plus
 ## Installation
 
 ```sh
-$ npm install -g express-generator-plus
+$ npm install -g generate-express
 ```
 
 ## Quick Start
 
-The quickest way to get started with express is to utilize the executable `express(1)` to generate an application as shown below:
+Once installed globally, you now get the cli executable
 
 Create the app:
 

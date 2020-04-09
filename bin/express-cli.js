@@ -257,7 +257,6 @@ inquirer
 
       // copy route templates
       mkdir(directory, 'server/routes')
-      copyTemplateMulti('js/routes', directory + '/server/routes', '*.js')
       copyTemplate('js/routes/users.js', path.join(dir, '/server/routes/users.js'))
       if (hasView) {
         copyTemplate('js/routes/index.js', path.join(dir, '/server/routes/index.js'))

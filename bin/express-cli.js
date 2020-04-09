@@ -258,6 +258,12 @@ inquirer
       // copy route templates
       mkdir(directory, 'server/routes')
       copyTemplateMulti('js/routes', directory + '/server/routes', '*.js')
+      copyTemplate('js/routes/users.js', path.join(dir, '/server/routes/users.js'))
+      if (hasView) {
+        copyTemplate('js/routes/index.js', path.join(dir, '/server/routes/index.js'))
+      } else {
+        copyTemplate('js/routes/apiOnly.js', path.join(dir, '/server/routes/index.js'))
+      }
 
       // Database
       www.locals.db = false
@@ -413,8 +419,14 @@ mongoose.connect(mongoUri, mongooseConfigs)
       console.log('   run the app:')
 
       if (launchedFromCmd()) {
+        if (program.database === 'sequelize') {
+          console.log('You must update server/config/config.json with your database info before starting.')
+        }
         console.log('     %s npm start', prompt, name)
       } else {
+        if (program.database === 'sequelize') {
+          console.log('You must update server/config/config.json with your database info before starting.')
+        }
         console.log('     %s npm start', prompt, name)
       }
 

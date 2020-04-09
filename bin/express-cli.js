@@ -194,34 +194,6 @@ inquirer
       }
 
       if (hasView) {
-        // copy css templates
-        switch (program.css) {
-          case 'less':
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.less')
-            break
-          case 'stylus':
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.styl')
-            break
-          case 'compass':
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.scss')
-            break
-          case 'sass':
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.sass')
-            break
-          default:
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.css')
-            break
-        }
-      } else {
-        console.log('Since api only was chosen, no css linking occurred.')
-        console.log('To add css, create /public/stylesheets/style.css')
-      }
-
-      // copy route templates
-      mkdir(directory, 'server/routes')
-      copyTemplateMulti('js/routes', directory + '/server/routes', '*.js')
-
-      if (hasView) {
         // Copy view templates
         mkdir(directory, 'public')
         mkdir(directory, 'public/javascripts')
@@ -258,6 +230,34 @@ inquirer
             break
         }
       }
+
+      if (hasView) {
+        // copy css templates
+        switch (program.css) {
+          case 'less':
+            copyTemplateMulti('css', directory + '/public/stylesheets', '*.less')
+            break
+          case 'stylus':
+            copyTemplateMulti('css', directory + '/public/stylesheets', '*.styl')
+            break
+          case 'compass':
+            copyTemplateMulti('css', directory + '/public/stylesheets', '*.scss')
+            break
+          case 'sass':
+            copyTemplateMulti('css', directory + '/public/stylesheets', '*.sass')
+            break
+          default:
+            copyTemplateMulti('css', directory + '/public/stylesheets', '*.css')
+            break
+        }
+      } else {
+        console.log('Since api only was chosen, no css linking occurred.')
+        console.log('To add css, create /public/stylesheets/style.css')
+      }
+
+      // copy route templates
+      mkdir(directory, 'server/routes')
+      copyTemplateMulti('js/routes', directory + '/server/routes', '*.js')
 
       // Database
       www.locals.db = false

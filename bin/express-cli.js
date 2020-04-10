@@ -10,7 +10,7 @@ var readline = require('readline')
 var sortedObject = require('sorted-object')
 var util = require('util')
 var inquirer = require('inquirer')
-var kebabCase = require('lodash.kebabcase');
+var kebabCase = require('lodash.kebabcase')
 
 var MODE_0666 = parseInt('0666', 8)
 var MODE_0755 = parseInt('0755', 8)
@@ -281,8 +281,9 @@ const db = mongojs(dbUri, collections);
         case 'sequelize':
           pkg.dependencies['mysql2'] = '^1.6.4'
           pkg.dependencies['sequelize'] = '^4.41.2'
+          pkg.dependencies['dotenv'] = '^8.2.0'
           app.locals.localModules.db = './models'
-          www.locals.db = `
+          app.locals.db = `
 // Run sequelize before listen
 db.sequelize.sync({ force: true }).then(function() {
   app.listen(PORT, function() {
@@ -292,9 +293,10 @@ db.sequelize.sync({ force: true }).then(function() {
 `
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/sequelize', dir + '/server/models', '*.js')
-          mkdir(dir, 'server/config')
-          copyTemplateMulti('js/models/sequelize/config', dir + '/server/config', '*.json')
-          copyTemplate('js/models/sequelize/config/config.json', path.join(dir, '/server/config/config.json'))
+          // mkdir(dir, 'server/config')
+          // copyTemplateMulti('js/models/sequelize/config', dir + '/server/config', '*.json')
+          // copyTemplate('js/models/sequelize/config/config.json', path.join(dir, '/server/config/config.json'))
+          copyTemplate('js/models/sequelize/.env', path.join(dir, '.env'))
           break
         case 'mongo + mongoose':
           pkg.dependencies['mongoose'] = '^5.3.16'

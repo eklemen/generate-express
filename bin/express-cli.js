@@ -293,9 +293,6 @@ db.sequelize.sync({ force: true }).then(function() {
 `
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/sequelize', dir + '/server/models', '*.js')
-          // mkdir(dir, 'server/config')
-          // copyTemplateMulti('js/models/sequelize/config', dir + '/server/config', '*.json')
-          // copyTemplate('js/models/sequelize/config/config.json', path.join(dir, '/server/config/config.json'))
           copyTemplate('js/models/sequelize/.env', path.join(dir, '.env'))
           break
         case 'mongo + mongoose':

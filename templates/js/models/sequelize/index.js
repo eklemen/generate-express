@@ -3,26 +3,17 @@
 import fs from 'fs';
 import path from 'path';
 import Sequelize from 'sequelize';
-import dotenv from 'dotenv';
+import Configs from './../config/config.js';
 const basename = path.basename(module.filename);
-dotenv.config();
-const envVars = process.env;
+const env = process.env.NODE_ENV || "development";
+const config = Configs[env];
 
-const config = {
-  username: envVars.USERNAME,
-  password: envVars.PASSWORD,
-  database: envVars.DATABASE,
-  host: envVars.HOST,
-  port: envVars.DB_PORT,
-  dialect: envVars.DIALECT,
-};
-
-const sequelize = new Sequelize(
-  envVars.database,
-  envVars.username,
-  envVars.password,
-  config
-);
+let sequelize = null;
+if (config.use_env_variable) {
+  sequelize = new Sequelize(process.env[config.use_env_variable]);
+} else {
+  sequelize = new Sequelize(config.database, config.username, config.password, config);
+}
 
 const db = {};
 

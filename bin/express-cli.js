@@ -283,14 +283,16 @@ const db = mongojs(dbUri, collections);
           pkg.dependencies['sequelize'] = '^4.41.2'
           pkg.dependencies['dotenv'] = '^8.2.0'
           app.locals.localModules.db = './models'
-          app.locals.db = `
+          www.locals.db = `
 // Run sequelize before listen
 db.sequelize.sync({ force: true }).then(function() {
-  app.listen(PORT, function() {
-    console.log("App listening on PORT " + PORT);
+  app.listen(port, function() {
+    console.log("App listening on PORT " + port);
   });
 });
 `
+          mkdir(dir, 'server/config')
+          copyTemplateMulti('js/models/sequelize/config', dir + '/server/config', '*.js')
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/sequelize', dir + '/server/models', '*.js')
           copyTemplate('js/models/sequelize/.env', path.join(dir, '.env'))

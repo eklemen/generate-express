@@ -30,9 +30,8 @@ const server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
- <% if (db) { %>
-  // database setup
-  <%- db %>;
+<% if (db) { %>
+<%- db %>;
 <%} else { %>
 server.listen(port, function() {
   console.log("App listening on PORT " + port);

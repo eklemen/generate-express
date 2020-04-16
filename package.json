@@ -4,7 +4,8 @@
   "version": "3.1.6",
   "author": "Evan Klemen <ejklemen+exgen@gmail.com>",
   "contributors": [
-    "Evan Klemen <ejklemen+exgen@gmail.com>"
+    "Evan Klemen <ejklemen+exgen@gmail.com>",
+    "Sujil Maharjan <maharjansujil+exgen@gmail.com>"
   ],
   "keywords": [
     "express",

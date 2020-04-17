@@ -3,6 +3,7 @@ import createError from 'http-errors';
 <% } -%>
 import express from 'express';
 import path from 'path';
+import dotenv from 'dotenv';
 <% Object.keys(modules).sort().forEach(function (variable) { -%>
 import <%- variable %> from '<%- modules[variable] %>';
 <% }); -%>
@@ -10,12 +11,16 @@ import <%- variable %> from '<%- modules[variable] %>';
 <% Object.keys(localModules).sort().forEach(function (variable) { -%>
 import <%- variable %> from '<%- localModules[variable] %>';
 <% }); -%>
-
+dotenv.config();
 const app = express();
 
 <% if (db) { -%>
-  // database setup
-  <%- db %>;
+// database setup
+  <%- db %>
+<% } -%>
+
+<% if (cache) { -%>
+  <%- cache %>
 <% } -%>
 
 <% if (view) { -%>

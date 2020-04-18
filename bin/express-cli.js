@@ -63,6 +63,15 @@ inquirer
         'vash'
       ],
       default: 'none'
+    },
+    {
+      type: 'list',
+      name: 'cache',
+      message: 'Include cache:',
+      choices: [
+        'none',
+        'redis'
+      ]
     }
   ])
   .then(program => {
@@ -144,7 +153,8 @@ inquirer
         },
         dependencies: {
           'debug': '~2.6.9',
-          'express': '~4.16.1'
+          'express': '~4.16.1',
+          'dotenv': '^8.2.0'
         },
         devDependencies: {
           '@babel/cli': '^7.8.4',
@@ -153,13 +163,15 @@ inquirer
           '@babel/preset-env': '^7.9.0',
           'jest': '^25.2.7',
           'npm-run-all': '^4.1.5',
-          'rimraf': '^3.0.2'
+          'rimraf': '^3.0.2',
+          'nodemon': '^2.0.3',
         }
       }
 
       // JavaScript
       var app = loadTemplate('js/app.js')
       var www = loadTemplate('js/www')
+      var env = loadTemplate('js/.env')
 
       // App name
       www.locals.name = name
@@ -262,6 +274,7 @@ inquirer
       // Database
       www.locals.db = false
       app.locals.db = false
+      env.locals.db = false
       switch (program.database) {
         case 'mongojs':
           pkg.dependencies['mongojs'] = '^3.1.0'
@@ -276,7 +289,6 @@ const db = mongojs(dbUri, collections);
         case 'sequelize':
           pkg.dependencies['mysql2'] = '^1.6.4'
           pkg.dependencies['sequelize'] = '^4.41.2'
-          pkg.dependencies['dotenv'] = '^8.2.0'
           app.locals.localModules.db = './models'
           www.locals.db = `
 // Run sequelize before listen
@@ -286,11 +298,18 @@ db.sequelize.sync({ force: true }).then(function() {
   });
 });
 `
+          env.locals.db = `
+USERNAME=root
+PASSWORD=null
+DATABASE=database_dev
+HOST=127.0.0.1
+DB_PORT=3306
+DIALECT=mysql          
+`
           mkdir(dir, 'server/config')
           copyTemplateMulti('js/models/sequelize/config', dir + '/server/config', '*.js')
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/sequelize', dir + '/server/models', '*.js')
-          copyTemplate('js/models/sequelize/.env', path.join(dir, '.env'))
           break
         case 'mongo + mongoose':
           pkg.dependencies['mongoose'] = '^5.3.16'
@@ -301,10 +320,40 @@ db.sequelize.sync({ force: true }).then(function() {
           app.locals.db = `
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost/mydb';
 const mongooseConfigs = { useNewUrlParser: true };
-mongoose.connect(mongoUri, mongooseConfigs)
+mongoose.connect(mongoUri, mongooseConfigs);
 `
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/mongoose', dir + '/server/models', '*.js')
+      }
+
+      // Caching
+      app.locals.cache = false
+      env.locals.cache = false
+      switch(program.cache) {
+        case 'redis':
+          pkg.dependencies['redis'] = '^3.0.2'
+          app.locals.modules.redis = 'redis'
+          app.locals.cache = `
+/**
+ * Redis Setup. For more options for redis client, go to: https://www.npmjs.com/package/redis#options-object-properties
+ */
+const redisPort = process.env.REDIS_PORT || 6379;
+const redisHost = process.env.REDIS_HOST || '127.0.0.1';
+const redisClient = redis.createClient(redisPort, redisHost);
+ 
+redisClient.on("error", (error) =>  {
+  console.error(error);
+});
+
+redisClient.on('connect', () => {
+  console.log(\`Redis connected in port: \${redisPort}\`)
+})
+// --------------End of Redis Setup-----------------------
+`
+          env.locals.cache = `
+REDIS_PORT=6379
+REDIS_HOST=127.0.0.1
+`
       }
 
       if (program.view) {
@@ -398,6 +447,7 @@ mongoose.connect(mongoUri, mongooseConfigs)
       mkdir(dir, 'server/bin')
       copyTemplate('js/gitignore', path.join(dir, '.gitignore'))
       write(path.join(dir, 'server/bin/www.js'), www.render(), MODE_0755)
+      write(path.join(dir, '.env'), env.render())
 
       var prompt = launchedFromCmd() ? '>' : '$'
 

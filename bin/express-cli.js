@@ -5,7 +5,6 @@ var fs = require('fs')
 var minimatch = require('minimatch')
 var mkdirp = require('mkdirp')
 var path = require('path')
-// var program = require('commander')
 var readline = require('readline')
 var sortedObject = require('sorted-object')
 var util = require('util')
@@ -18,11 +17,7 @@ var TEMPLATE_DIR = path.join(__dirname, '..', 'templates')
 
 var _exit = process.exit
 
-// Re-assign process.exit because of commander
-// TODO: Switch to a different command framework
-
 // CLI
-
 let dirDefaultName = 'hello-world'
 if (process.argv[2] && process.argv[2].trim().length) {
   dirDefaultName = process.argv[2]

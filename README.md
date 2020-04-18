@@ -1,39 +1,38 @@
-Generate Express
+# Generate Express
+
+## Generate an Express app from the command line
 
 #### Heavily inspired by
 [Express'](https://www.npmjs.com/package/express) application generator.
 
 ![but wait theres more](assets/waitTheresMore.gif "So much more...")
 
-## New features
+## Features
 * ES6+ support (including import/export) with latest babel support
-* New interactive CLI prompts (no more flags)
+* Interactive CLI prompts (no more flags)
 * Choose your own database starter configs (`mongojs`, `mongo + mongoose`, `sequelize`, or `none`)
 * Api-only option to exclude views and public directory, or pick from one of the original view engines offered by express-generator
 * File watcher via `nodemon` to transpile code on change 
 
 ### Coming soon
 * More database configs, including dynamodb and aurora
-* Depricating less popular view engines
+* Deprecating less popular view engines
 * More CLI options for more packages
 * Testing: starting with `jest` will add configs for other frameworks eventually
 * Testing this framework itself
 
-## Installation
+## Quick Start
+Preferred
+```sh
+npx generate-express myCoolProject
+```
 
+Or install globally and run the executable
 ```sh
 $ npm install -g generate-express
-```
-
-## Quick Start
-
-Once installed globally, you now get the cli executable
-
-Create the app:
-
-```bash
 $ exgen myCoolProject
 ```
+
 
 Install dependencies:
 

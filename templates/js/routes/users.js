@@ -1,8 +1,9 @@
 import express from 'express';
 const router = express.Router();
-import UserService from '../services/users';
 
 /* GET home page. */
-router.get('/', UserService.getUser);
+router.get('/', (req, res, next) => {
+  res.send('User route');
+});
 
 export default router;

@@ -15,7 +15,8 @@
     "es6",
     "mongo",
     "sequelize",
-    "generator"
+    "generator",
+    "redis"
   ],
   "repository": "eklemen/generator",
   "license": "MIT",

@@ -329,7 +329,7 @@ mongoose.connect(mongoUri, mongooseConfigs);
       // Caching
       app.locals.cache = false
       env.locals.cache = false
-      switch(program.cache) {
+      switch (program.cache) {
         case 'redis':
           pkg.dependencies['redis'] = '^3.0.2'
           app.locals.modules.redis = 'redis'
@@ -463,19 +463,11 @@ REDIS_HOST=127.0.0.1
       console.log()
       console.log('   run the app:')
 
-      if (launchedFromCmd()) {
-        if (program.database === 'sequelize') {
-          console.log('You must update server/config/config.json with your database info before starting.')
-        }
-        console.log('     %s npm start', prompt, name)
-      } else {
-        if (program.database === 'sequelize') {
-          console.log('You must update server/config/config.json with your database info before starting.')
-        }
-        console.log('     %s npm start', prompt, name)
+      if (program.database !== 'none') {
+        console.log('   You must update the `.env` file with your database settings before starting.')
       }
+      console.log('     %s npm start', prompt, name)
 
-      console.log()
     }
 
     /**

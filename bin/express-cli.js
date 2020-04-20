@@ -14,6 +14,7 @@ var kebabCase = require('lodash.kebabcase')
 var MODE_0666 = parseInt('0666', 8)
 var MODE_0755 = parseInt('0755', 8)
 var TEMPLATE_DIR = path.join(__dirname, '..', 'templates')
+var codeSnippets = require('../js/code-snippets.js')
 
 var _exit = process.exit
 
@@ -279,33 +280,15 @@ inquirer
         case 'mongojs':
           pkg.dependencies['mongojs'] = '^3.1.0'
           app.locals.modules.mongojs = 'mongojs'
-          app.locals.db = `
-const dbUri = process.env.MONGODB_URI || 'mydb';
-const collections = ['mycollection'];
-
-const db = mongojs(dbUri, collections);
-`
+          app.locals.db = codeSnippets.mongoJsCode
           break
         case 'sequelize':
           pkg.dependencies['mysql2'] = '^1.6.4'
           pkg.dependencies['sequelize'] = '^4.41.2'
           app.locals.localModules.db = './models'
-          www.locals.db = `
-// Run sequelize before listen
-db.sequelize.sync({ force: true }).then(function() {
-  app.listen(port, function() {
-    console.log("App listening on PORT " + port);
-  });
-});
-`
-          env.locals.db = `
-USERNAME=root
-PASSWORD=null
-DATABASE=database_dev
-HOST=127.0.0.1
-DB_PORT=3306
-DIALECT=mysql          
-`
+          www.locals.db = codeSnippets.sequelizeCode
+          env.locals.db = codeSnippets.sequelizeEnvironmentVars
+
           mkdir(dir, 'server/config')
           copyTemplateMulti('js/models/sequelize/config', dir + '/server/config', '*.js')
           mkdir(dir, 'server/models')
@@ -317,11 +300,7 @@ DIALECT=mysql
           app.locals.modules.mongoose = 'mongoose'
           app.locals.modules.logger = 'morgan'
           app.locals.uses.push("logger('dev')")
-          app.locals.db = `
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost/mydb';
-const mongooseConfigs = { useNewUrlParser: true };
-mongoose.connect(mongoUri, mongooseConfigs);
-`
+          app.locals.db = codeSnippets.mongoMongooseCode
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/mongoose', dir + '/server/models', '*.js')
       }
@@ -333,27 +312,8 @@ mongoose.connect(mongoUri, mongooseConfigs);
         case 'redis':
           pkg.dependencies['redis'] = '^3.0.2'
           app.locals.modules.redis = 'redis'
-          app.locals.cache = `
-/**
- * Redis Setup. For more options for redis client, go to: https://www.npmjs.com/package/redis#options-object-properties
- */
-const redisPort = process.env.REDIS_PORT || 6379;
-const redisHost = process.env.REDIS_HOST || '127.0.0.1';
-const redisClient = redis.createClient(redisPort, redisHost);
- 
-redisClient.on("error", (error) =>  {
-  console.error(error);
-});
-
-redisClient.on('connect', () => {
-  console.log(\`Redis connected in port: \${redisPort}\`)
-})
-// --------------End of Redis Setup-----------------------
-`
-          env.locals.cache = `
-REDIS_PORT=6379
-REDIS_HOST=127.0.0.1
-`
+          app.locals.cache = codeSnippets.redisCode
+          env.locals.cache = codeSnippets.redisEnvironmentVars
       }
 
       if (program.view) {

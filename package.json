@@ -17,7 +17,7 @@
     "sequelize",
     "generator"
   ],
-  "repository": "eklemen/generator",
+  "repository": "eklemen/generate-express",
   "license": "MIT",
   "dependencies": {
     "ejs": "2.6.1",

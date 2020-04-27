@@ -26,12 +26,7 @@ Preferred
 ```sh
 npx generate-express myCoolProject
 ```
-
-Or install globally and run the executable
-```sh
-$ npm install -g generate-express
-$ exgen myCoolProject
-```
+You can download [npx here](https://www.npmjs.com/package/npx) by running `npm i -g npx`
 
 
 Install dependencies:

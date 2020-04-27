@@ -1,8 +1,8 @@
 <% if (view) { -%>
 import createError from 'http-errors';
+import path from 'path';
 <% } -%>
 import express from 'express';
-import path from 'path';
 import dotenv from 'dotenv';
 <% Object.keys(modules).sort().forEach(function (variable) { -%>
 import <%- variable %> from '<%- modules[variable] %>';

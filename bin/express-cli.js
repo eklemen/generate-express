@@ -10,6 +10,8 @@ var sortedObject = require('sorted-object')
 var util = require('util')
 var inquirer = require('inquirer')
 var kebabCase = require('lodash.kebabcase')
+var chalk = require('chalk')
+var rimraf = require('rimraf')
 
 var MODE_0666 = parseInt('0666', 8)
 var MODE_0755 = parseInt('0755', 8)
@@ -165,7 +167,7 @@ inquirer
           'jest': '^25.2.7',
           'npm-run-all': '^4.1.5',
           'rimraf': '^3.0.2',
-          'nodemon': '^2.0.3',
+          'nodemon': '^2.0.3'
         }
       }
 
@@ -308,7 +310,7 @@ inquirer
       // Caching
       app.locals.cache = false
       env.locals.cache = false
-      switch(program.cache) {
+      switch (program.cache) {
         case 'redis':
           pkg.dependencies['redis'] = '^3.0.2'
           app.locals.modules.redis = 'redis'
@@ -409,33 +411,23 @@ inquirer
       write(path.join(dir, 'server/bin/www.js'), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())
 
-      var prompt = launchedFromCmd() ? '>' : '$'
-
       if (dir !== '.') {
         console.log()
-        console.log('   change directory:')
-        console.log('     %s cd %s', prompt, dir)
+        console.log('  change directory:')
+        console.log(chalk.blue.bold(`    cd ${dir}`))
       }
 
       console.log()
-      console.log('   install dependencies:')
-      console.log('     %s npm install', prompt)
+      console.log('  install dependencies:')
+      console.log(chalk.blue.bold(`    npm install`))
       console.log()
-      console.log('   run the app:')
+      console.log('  run the app in dev mode:')
+      console.log(chalk.blue.bold('    npm watch:dev'))
 
-      if (launchedFromCmd()) {
-        if (program.database === 'sequelize') {
-          console.log('You must update server/config/config.json with your database info before starting.')
-        }
-        console.log('     %s npm start', prompt, name)
-      } else {
-        if (program.database === 'sequelize') {
-          console.log('You must update server/config/config.json with your database info before starting.')
-        }
-        console.log('     %s npm start', prompt, name)
+      if (program.database === 'sequelize') {
+        console.log()
+        console.log(chalk.yellow('   NOTE: You must update the `.env` file with your database settings before starting.'))
       }
-
-      console.log()
     }
 
     /**
@@ -524,10 +516,13 @@ inquirer
         if (empty || program.force) {
           createApplication(appName, destinationPath)
         } else {
-          confirm(`./${appName} is not empty, erase contents and continue? [y/N] `, function (ok) {
+          var message = chalk.red.bold(`WARNING: ./${appName} is not empty, erase contents and continue? [y/N] `)
+          confirm(message, function (ok) {
             if (ok) {
-              process.stdin.destroy()
-              createApplication(appName, destinationPath)
+              rimraf(destinationPath, function () {
+                process.stdin.destroy()
+                createApplication(appName, destinationPath)
+              })
             } else {
               console.error('aborting')
               exit(1)

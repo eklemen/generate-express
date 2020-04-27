@@ -15,11 +15,13 @@
     "es6",
     "mongo",
     "sequelize",
-    "generator"
+    "generator",
+    "redis"
   ],
   "repository": "eklemen/generate-express",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^4.0.0",
     "ejs": "2.6.1",
     "inquirer": "^7.1.0",
     "lodash.kebabcase": "^4.1.1",
@@ -40,7 +42,7 @@
     "eslint-plugin-promise": "4.1.1",
     "eslint-plugin-standard": "4.0.0",
     "mocha": "6.1.4",
-    "rimraf": "2.6.3",
+    "rimraf": "^2.6.3",
     "supertest": "4.0.2",
     "tree-kill": "1.2.1",
     "uid-safe": "2.1.5",

@@ -18,7 +18,7 @@
     "generator",
     "redis"
   ],
-  "repository": "eklemen/generator",
+  "repository": "eklemen/generate-express",
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.0.0",

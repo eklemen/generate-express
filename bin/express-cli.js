@@ -188,7 +188,7 @@ inquirer
       // Request logger
       app.locals.modules.logger = 'morgan'
       app.locals.uses.push("logger('dev')")
-      pkg.dependencies.morgan = '~1.9.1'
+      pkg.dependencies.morgan = '^1.9.1'
 
       // Body parsers
       app.locals.uses.push('express.json()')
@@ -197,7 +197,22 @@ inquirer
       // Cookie parser
       app.locals.modules.cookieParser = 'cookie-parser'
       app.locals.uses.push('cookieParser()')
-      pkg.dependencies['cookie-parser'] = '~1.4.4'
+      pkg.dependencies['cookie-parser'] = '^1.4.4'
+
+      // Helmet
+      app.locals.modules.helmet = 'helmet'
+      app.locals.uses.push('helmet()')
+      pkg.dependencies['helmet'] = '^3.22.0'
+
+      // CORS
+      app.locals.modules.helmet = 'cors'
+      app.locals.uses.push('cors()')
+      pkg.dependencies['cors'] = '^2.8.5'
+
+      // Compression middleware
+      app.locals.modules.compression = 'compression'
+      app.locals.uses.push('compression()')
+      pkg.dependencies['compression'] = '^1.7.4'
 
       if (directory !== '.') {
         mkdir(directory, '.')
@@ -298,10 +313,7 @@ inquirer
           break
         case 'mongo + mongoose':
           pkg.dependencies['mongoose'] = '^5.3.16'
-          pkg.dependencies['morgan'] = '^1.9.1'
           app.locals.modules.mongoose = 'mongoose'
-          app.locals.modules.logger = 'morgan'
-          app.locals.uses.push("logger('dev')")
           app.locals.db = codeSnippets.mongoMongooseCode
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/mongoose', dir + '/server/models', '*.js')

@@ -19,7 +19,7 @@
 * Deprecating less popular view engines
 * More CLI options for more packages
 * Testing: starting with `jest` will add configs for other frameworks eventually
-* Testing this framework itself
+* More testing of this framework itself
 
 ## Quick Start
 Preferred

@@ -10,10 +10,13 @@ var sortedObject = require('sorted-object')
 var util = require('util')
 var inquirer = require('inquirer')
 var kebabCase = require('lodash.kebabcase')
+var chalk = require('chalk')
+var rimraf = require('rimraf')
 
 var MODE_0666 = parseInt('0666', 8)
 var MODE_0755 = parseInt('0755', 8)
 var TEMPLATE_DIR = path.join(__dirname, '..', 'templates')
+var codeSnippets = require('../js/code-snippets.js')
 
 var _exit = process.exit
 
@@ -164,7 +167,7 @@ inquirer
           'jest': '^25.2.7',
           'npm-run-all': '^4.1.5',
           'rimraf': '^3.0.2',
-          'nodemon': '^2.0.3',
+          'nodemon': '^2.0.3'
         }
       }
 
@@ -185,7 +188,7 @@ inquirer
       // Request logger
       app.locals.modules.logger = 'morgan'
       app.locals.uses.push("logger('dev')")
-      pkg.dependencies.morgan = '~1.9.1'
+      pkg.dependencies.morgan = '^1.9.1'
 
       // Body parsers
       app.locals.uses.push('express.json()')
@@ -194,7 +197,22 @@ inquirer
       // Cookie parser
       app.locals.modules.cookieParser = 'cookie-parser'
       app.locals.uses.push('cookieParser()')
-      pkg.dependencies['cookie-parser'] = '~1.4.4'
+      pkg.dependencies['cookie-parser'] = '^1.4.4'
+
+      // Helmet
+      app.locals.modules.helmet = 'helmet'
+      app.locals.uses.push('helmet()')
+      pkg.dependencies['helmet'] = '^3.22.0'
+
+      // CORS
+      app.locals.modules.helmet = 'cors'
+      app.locals.uses.push('cors()')
+      pkg.dependencies['cors'] = '^2.8.5'
+
+      // Compression middleware
+      app.locals.modules.compression = 'compression'
+      app.locals.uses.push('compression()')
+      pkg.dependencies['compression'] = '^1.7.4'
 
       if (directory !== '.') {
         mkdir(directory, '.')
@@ -279,33 +297,15 @@ inquirer
         case 'mongojs':
           pkg.dependencies['mongojs'] = '^3.1.0'
           app.locals.modules.mongojs = 'mongojs'
-          app.locals.db = `
-const dbUri = process.env.MONGODB_URI || 'mydb';
-const collections = ['mycollection'];
-
-const db = mongojs(dbUri, collections);
-`
+          app.locals.db = codeSnippets.mongoJsCode
           break
         case 'sequelize':
           pkg.dependencies['mysql2'] = '^1.6.4'
           pkg.dependencies['sequelize'] = '^4.41.2'
           app.locals.localModules.db = './models'
-          www.locals.db = `
-// Run sequelize before listen
-db.sequelize.sync({ force: true }).then(function() {
-  app.listen(port, function() {
-    console.log("App listening on PORT " + port);
-  });
-});
-`
-          env.locals.db = `
-USERNAME=root
-PASSWORD=null
-DATABASE=database_dev
-HOST=127.0.0.1
-DB_PORT=3306
-DIALECT=mysql          
-`
+          www.locals.db = codeSnippets.sequelizeCode
+          env.locals.db = codeSnippets.sequelizeEnvironmentVars
+
           mkdir(dir, 'server/config')
           copyTemplateMulti('js/models/sequelize/config', dir + '/server/config', '*.js')
           mkdir(dir, 'server/models')
@@ -313,15 +313,8 @@ DIALECT=mysql
           break
         case 'mongo + mongoose':
           pkg.dependencies['mongoose'] = '^5.3.16'
-          pkg.dependencies['morgan'] = '^1.9.1'
           app.locals.modules.mongoose = 'mongoose'
-          app.locals.modules.logger = 'morgan'
-          app.locals.uses.push("logger('dev')")
-          app.locals.db = `
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost/mydb';
-const mongooseConfigs = { useNewUrlParser: true };
-mongoose.connect(mongoUri, mongooseConfigs);
-`
+          app.locals.db = codeSnippets.mongoMongooseCode
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/mongoose', dir + '/server/models', '*.js')
       }
@@ -329,31 +322,12 @@ mongoose.connect(mongoUri, mongooseConfigs);
       // Caching
       app.locals.cache = false
       env.locals.cache = false
-      switch(program.cache) {
+      switch (program.cache) {
         case 'redis':
           pkg.dependencies['redis'] = '^3.0.2'
           app.locals.modules.redis = 'redis'
-          app.locals.cache = `
-/**
- * Redis Setup. For more options for redis client, go to: https://www.npmjs.com/package/redis#options-object-properties
- */
-const redisPort = process.env.REDIS_PORT || 6379;
-const redisHost = process.env.REDIS_HOST || '127.0.0.1';
-const redisClient = redis.createClient(redisPort, redisHost);
- 
-redisClient.on("error", (error) =>  {
-  console.error(error);
-});
-
-redisClient.on('connect', () => {
-  console.log(\`Redis connected in port: \${redisPort}\`)
-})
-// --------------End of Redis Setup-----------------------
-`
-          env.locals.cache = `
-REDIS_PORT=6379
-REDIS_HOST=127.0.0.1
-`
+          app.locals.cache = codeSnippets.redisCode
+          env.locals.cache = codeSnippets.redisEnvironmentVars
       }
 
       if (program.view) {
@@ -449,33 +423,23 @@ REDIS_HOST=127.0.0.1
       write(path.join(dir, 'server/bin/www.js'), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())
 
-      var prompt = launchedFromCmd() ? '>' : '$'
-
       if (dir !== '.') {
         console.log()
-        console.log('   change directory:')
-        console.log('     %s cd %s', prompt, dir)
+        console.log('  change directory:')
+        console.log(chalk.blue.bold(`    cd ${dir}`))
       }
 
       console.log()
-      console.log('   install dependencies:')
-      console.log('     %s npm install', prompt)
+      console.log('  install dependencies:')
+      console.log(chalk.blue.bold(`    npm install`))
       console.log()
-      console.log('   run the app:')
+      console.log('  run the app in dev mode:')
+      console.log(chalk.blue.bold('    npm watch:dev'))
 
-      if (launchedFromCmd()) {
-        if (program.database === 'sequelize') {
-          console.log('You must update server/config/config.json with your database info before starting.')
-        }
-        console.log('     %s npm start', prompt, name)
-      } else {
-        if (program.database === 'sequelize') {
-          console.log('You must update server/config/config.json with your database info before starting.')
-        }
-        console.log('     %s npm start', prompt, name)
+      if (program.database === 'sequelize') {
+        console.log()
+        console.log(chalk.yellow('   NOTE: You must update the `.env` file with your database settings before starting.'))
       }
-
-      console.log()
     }
 
     /**
@@ -564,10 +528,13 @@ REDIS_HOST=127.0.0.1
         if (empty || program.force) {
           createApplication(appName, destinationPath)
         } else {
-          confirm(`./${appName} is not empty, erase contents and continue? [y/N] `, function (ok) {
+          var message = chalk.red.bold(`WARNING: ./${appName} is not empty, erase contents and continue? [y/N] `)
+          confirm(message, function (ok) {
             if (ok) {
-              process.stdin.destroy()
-              createApplication(appName, destinationPath)
+              rimraf(destinationPath, function () {
+                process.stdin.destroy()
+                createApplication(appName, destinationPath)
+              })
             } else {
               console.error('aborting')
               exit(1)

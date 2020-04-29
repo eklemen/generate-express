@@ -19,19 +19,14 @@
 * Deprecating less popular view engines
 * More CLI options for more packages
 * Testing: starting with `jest` will add configs for other frameworks eventually
-* Testing this framework itself
+* More testing of this framework itself
 
 ## Quick Start
 Preferred
 ```sh
 npx generate-express myCoolProject
 ```
-
-Or install globally and run the executable
-```sh
-$ npm install -g generate-express
-$ exgen myCoolProject
-```
+You can download [npx here](https://www.npmjs.com/package/npx) by running `npm i -g npx`
 
 
 Install dependencies:

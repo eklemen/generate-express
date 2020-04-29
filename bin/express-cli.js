@@ -205,7 +205,7 @@ inquirer
       pkg.dependencies['helmet'] = '^3.22.0'
 
       // CORS
-      app.locals.modules.helmet = 'cors'
+      app.locals.modules.cors = 'cors'
       app.locals.uses.push('cors()')
       pkg.dependencies['cors'] = '^2.8.5'
 

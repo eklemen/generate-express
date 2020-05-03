@@ -58,6 +58,11 @@ $ npm run prod
 $ npm run build
 ```
 
+## Contributions
+Feel free to raise an issue or create a Pull Request if you see ways that can improve this library.
+
+### Current Contributors
+[![](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/images/0)](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/links/0)[![](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/images/1)](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/links/1)[![](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/images/2)](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/links/2)[![](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/images/3)](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/links/3)[![](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/images/4)](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/links/4)[![](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/images/5)](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/links/5)[![](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/images/6)](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/links/6)[![](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/images/7)](https://sourcerer.io/fame/smaharj1/eklemen/generate-express/links/7)
 
 ## License
 

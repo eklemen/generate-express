@@ -1,5 +1,4 @@
-<img src="assets/generate-express-horizontal.png" width="400" height="178" alt="generate-express logo" />
-
+![generate-express logo](assets/generate-express-small.png)
 
 ## Generate an Express app from the command line
 

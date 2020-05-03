@@ -1,4 +1,4 @@
-import mongoose from 'templates/js/models/mongoose/User';
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({

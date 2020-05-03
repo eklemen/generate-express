@@ -24,7 +24,7 @@ DIALECT=mysql`,
 
     mongoMongooseCode:
 `const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost/mydb';
-const mongooseConfigs = { useNewUrlParser: true };
+const mongooseConfigs = { useNewUrlParser: true, useUnifiedTopology: true };
 mongoose.connect(mongoUri, mongooseConfigs);`,
 
     redisCode:

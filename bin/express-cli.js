@@ -133,14 +133,13 @@ inquirer
         version: '1.0.0',
         private: true,
         scripts: {
-          'start': 'npm run prod',
+          'start': 'nodemon',
           'build': 'npm-run-all clean transpile',
           'server': 'node ./dist/bin/www',
           'dev': 'NODE_ENV=development npm-run-all build server',
           'prod': 'NODE_ENV=production npm-run-all build server',
           'transpile': 'babel ./server --out-dir dist --copy-files',
-          'clean': 'rimraf dist',
-          'watch:dev': 'nodemon'
+          'clean': 'rimraf dist'
         },
         nodemonConfig: {
           'exec': 'npm run dev',
@@ -293,11 +292,13 @@ inquirer
       www.locals.db = false
       app.locals.db = false
       env.locals.db = false
+      mkdir(dir, 'server/controllers')
       switch (program.database) {
         case 'mongojs':
           pkg.dependencies['mongojs'] = '^3.1.0'
           app.locals.modules.mongojs = 'mongojs'
           app.locals.db = codeSnippets.mongoJsCode
+          copyTemplate('js/controllers/userController.mongo.js', path.join(dir, '/server/controllers/userController.js'))
           break
         case 'sequelize':
           pkg.dependencies['mysql2'] = '^1.6.4'
@@ -310,6 +311,7 @@ inquirer
           copyTemplateMulti('js/models/sequelize/config', dir + '/server/config', '*.js')
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/sequelize', dir + '/server/models', '*.js')
+          copyTemplate('js/controllers/userController.sql.js', path.join(dir, '/server/controllers/userController.js'))
           break
         case 'mongo + mongoose':
           pkg.dependencies['mongoose'] = '^5.3.16'
@@ -317,6 +319,7 @@ inquirer
           app.locals.db = codeSnippets.mongoMongooseCode
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/mongoose', dir + '/server/models', '*.js')
+          copyTemplate('js/controllers/userController.mongo.js', path.join(dir, '/server/controllers/userController.js'))
       }
 
       // Caching
@@ -358,11 +361,11 @@ inquirer
 
       // Index router mount
       app.locals.localModules.indexRouter = './routes/index'
-      app.locals.mounts.push({ path: '/server', code: 'indexRouter' })
+      app.locals.mounts.push({ path: '/api', code: 'indexRouter' })
 
       // User router mount
       app.locals.localModules.usersRouter = './routes/users'
-      app.locals.mounts.push({ path: '/server/users', code: 'usersRouter' })
+      app.locals.mounts.push({ path: '/api/users', code: 'usersRouter' })
 
       // Template support
       switch (program.view) {
@@ -433,8 +436,10 @@ inquirer
       console.log('  install dependencies:')
       console.log(chalk.blue.bold(`    npm install`))
       console.log()
-      console.log('  run the app in dev mode:')
-      console.log(chalk.blue.bold('    npm watch:dev'))
+      console.log('  run the app in dev watch mode:')
+      console.log(chalk.blue.bold('    npm start'))
+      console.log()
+      console.log('Hello world: ', chalk.cyan.underline('localhost:3001/api'))
 
       if (program.database === 'sequelize') {
         console.log()

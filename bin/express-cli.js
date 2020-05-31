@@ -320,6 +320,9 @@ inquirer
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/mongoose', dir + '/server/models', '*.js')
           copyTemplate('js/controllers/userController.mongo.js', path.join(dir, '/server/controllers/userController.js'))
+          break
+        default:
+          copyTemplate('js/controllers/userController.default.js', path.join(dir, '/server/controllers/userController.js'))
       }
 
       // Caching

@@ -413,7 +413,7 @@ inquirer
           break
       }
 
-      if (program.git) {
+      if (program.gitignore) {
         copyTemplate('js/gitignore', path.join(dir, '.gitignore'))
       }
 

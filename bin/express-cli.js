@@ -87,18 +87,6 @@ inquirer
       main()
     }
 
-    function confirm (msg, callback) {
-      var rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-      })
-
-      rl.question(msg, function (input) {
-        rl.close()
-        callback(/^y|yes|ok|true$/i.test(input))
-      })
-    }
-
     /**
      * Copy file from template directory.
      */
@@ -128,7 +116,7 @@ inquirer
 
     function createApplication (name, directory) {
       // Package
-      var pkg = {
+      const pkg = {
         name: kebabCase(name),
         version: '1.0.0',
         private: true,
@@ -171,9 +159,9 @@ inquirer
       }
 
       // JavaScript
-      var app = loadTemplate('js/app.js')
-      var www = loadTemplate('js/www')
-      var env = loadTemplate('js/.env')
+      const app = loadTemplate('js/app.js')
+      const www = loadTemplate('js/www')
+      const env = loadTemplate('js/.env')
 
       // App name
       www.locals.name = name
@@ -320,6 +308,9 @@ inquirer
           mkdir(dir, 'server/models')
           copyTemplateMulti('js/models/mongoose', dir + '/server/models', '*.js')
           copyTemplate('js/controllers/userController.mongo.js', path.join(dir, '/server/controllers/userController.js'))
+          break
+        default:
+          copyTemplate('js/controllers/userController.default.js', path.join(dir, '/server/controllers/userController.js'))
       }
 
       // Caching
@@ -410,7 +401,7 @@ inquirer
           break
       }
 
-      if (program.git) {
+      if (program.gitignore) {
         copyTemplate('js/gitignore', path.join(dir, '.gitignore'))
       }
 
@@ -422,7 +413,6 @@ inquirer
       write(path.join(dir, 'package.json'), JSON.stringify(pkg, null, 2) + '\n')
       copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
       mkdir(dir, 'server/bin')
-      copyTemplate('js/gitignore', path.join(dir, '.gitignore'))
       write(path.join(dir, 'server/bin/www.js'), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())
 
@@ -474,8 +464,8 @@ inquirer
         if (!(draining--)) _exit(code)
       }
 
-      var draining = 0
-      var streams = [process.stdout, process.stderr]
+      let draining = 0
+      const streams = [process.stdout, process.stderr]
 
       exit.exited = true
 
@@ -489,21 +479,12 @@ inquirer
     }
 
     /**
-     * Determine if launched from cmd.exe
-     */
-
-    function launchedFromCmd () {
-      return process.platform === 'win32' &&
-        process.env._ === undefined
-    }
-
-    /**
      * Load template file.
      */
 
     function loadTemplate (name) {
-      var contents = fs.readFileSync(path.join(__dirname, '..', 'templates', (name + '.ejs')), 'utf-8')
-      var locals = Object.create(null)
+      const contents = fs.readFileSync(path.join(__dirname, '..', 'templates', (name + '.ejs')), 'utf-8')
+      const locals = Object.create(null)
 
       function render () {
         return ejs.render(contents, locals, {
@@ -523,17 +504,30 @@ inquirer
 
     function main () {
       // Path
-      var destinationPath = './' + dir
+      const destinationPath = './' + dir
 
       // App name
-      var appName = dir
+      const appName = dir
+
+      // Grab input on y/n prompt
+      function confirm (msg, callback) {
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        })
+
+        rl.question(msg, function (input) {
+          rl.close()
+          callback(/^y|yes|ok|true$/i.test(input))
+        })
+      }
 
       // Generate application
       emptyDirectory(destinationPath, function (empty) {
         if (empty || program.force) {
           createApplication(appName, destinationPath)
         } else {
-          var message = chalk.red.bold(`WARNING: ./${appName} is not empty, erase contents and continue? [y/N] `)
+          const message = chalk.red.bold(`WARNING: ./${appName} is not empty, erase contents and continue? [y/N] `)
           confirm(message, function (ok) {
             if (ok) {
               rimraf(destinationPath, function () {
@@ -541,7 +535,7 @@ inquirer
                 createApplication(appName, destinationPath)
               })
             } else {
-              console.error('aborting')
+              console.log(chalk.red.bold('aborting'))
               exit(1)
             }
           })
@@ -557,9 +551,8 @@ inquirer
      */
 
     function mkdir (base, directory) {
-      var loc = path.join(base, directory)
-
-      console.log('   \x1b[36mcreate\x1b[0m : ' + loc + path.sep)
+      const loc = path.join(base, directory)
+      console.log(chalk.cyan('   create: ' + chalk.green(loc + path.sep)))
       mkdirp.sync(loc, MODE_0755)
     }
 
@@ -572,16 +565,16 @@ inquirer
 
     function write (file, str, mode) {
       fs.writeFileSync(file, str, { mode: mode || MODE_0666 })
-      console.log('   \x1b[36mcreate\x1b[0m : ' + file)
+      console.log(chalk.cyan('   create : ' + chalk.green(file)))
     }
     process.exit = exit
   })
   .catch(error => {
     if (error.isTtyError) {
       // Prompt couldn't be rendered in the current environment
-      console.log(error)
+      console.log(chalk.red.bold('Could not run in the current environment: ' + error))
     } else {
       // Something else when wrong
-      console.log(error)
+      console.log(chalk.red.bold('Something went wrong: ' + error))
     }
   })

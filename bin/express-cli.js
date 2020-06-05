@@ -142,9 +142,9 @@ inquirer
           ]
         },
         dependencies: {
+          'babel-plugin-inline-dotenv': '^1.5.0',
           'debug': '~2.6.9',
-          'express': '~4.16.1',
-          'dotenv': '^8.2.0'
+          'express': '~4.16.1'
         },
         devDependencies: {
           '@babel/cli': '^7.8.4',

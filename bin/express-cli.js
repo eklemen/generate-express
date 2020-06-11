@@ -120,6 +120,7 @@ inquirer
         name: kebabCase(name),
         version: '1.0.0',
         private: true,
+        main: 'dist/bin/www.js',
         scripts: {
           'start': 'nodemon',
           'build': 'npm-run-all clean transpile',

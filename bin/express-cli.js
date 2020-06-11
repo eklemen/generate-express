@@ -286,7 +286,7 @@ inquirer
           pkg.dependencies['mongojs'] = '^3.1.0'
           app.locals.modules.mongojs = 'mongojs'
           app.locals.db = codeSnippets.mongoJsCode
-          copyTemplate('js/controllers/userController.mongo.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplate('js/controllers/userController.default.js', path.join(dir, '/server/controllers/userController.js'))
           break
         case 'sequelize':
           pkg.dependencies['mysql2'] = '^1.6.4'

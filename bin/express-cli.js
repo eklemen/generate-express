@@ -33,6 +33,16 @@ inquirer
       default: dirDefaultName
     },
     {
+      type: 'list',
+      name: 'typescript',
+      message: 'Use Typescript or es6+ Javascript',
+      choices: [
+        'es6+ Javascript',
+        'Typescript'
+      ],
+      default: 'es6+ Javascript'
+    },
+    {
       type: 'confirm',
       name: 'gitignore',
       message: 'Include a .gitignore?',
@@ -52,6 +62,10 @@ inquirer
       default: 'none'
     },
     {
+      when: function (response) {
+        // Only ask for view engine if Javascript is selected
+        return response.typescript === 'es6+ Javascript'
+      },
       type: 'list',
       name: 'view',
       message: 'View engine or just API:',
@@ -82,6 +96,7 @@ inquirer
       dir
     } = program
     const hasView = program.view !== 'none - api only'
+    const hasTs = program.typescript === 'Typescript'
 
     if (!exit.exited) {
       main()
@@ -116,52 +131,17 @@ inquirer
 
     function createApplication (name, directory) {
       // Package
-      const pkg = {
-        name: kebabCase(name),
-        version: '1.0.0',
-        private: true,
-        main: 'dist/bin/www.js',
-        scripts: {
-          'start': 'nodemon',
-          'build': 'npm-run-all clean transpile',
-          'server': 'node ./dist/bin/www',
-          'dev': 'NODE_ENV=development npm-run-all build server',
-          'prod': 'NODE_ENV=production npm-run-all build server',
-          'transpile': 'babel ./server --out-dir dist --copy-files',
-          'clean': 'rimraf dist'
-        },
-        nodemonConfig: {
-          'exec': 'npm run dev',
-          'watch': [
-            'server/*',
-            'public/*'
-          ],
-          'ignore': [
-            '**/__tests__/**',
-            '*.test.js',
-            '*.spec.js'
-          ]
-        },
-        dependencies: {
-          'babel-plugin-inline-dotenv': '^1.5.0',
-          'debug': '~2.6.9',
-          'express': '~4.16.1'
-        },
-        devDependencies: {
-          '@babel/cli': '^7.8.4',
-          '@babel/core': '^7.9.0',
-          '@babel/node': '^7.8.7',
-          '@babel/preset-env': '^7.9.0',
-          'jest': '^25.2.7',
-          'npm-run-all': '^4.1.5',
-          'rimraf': '^3.0.2',
-          'nodemon': '^2.0.3'
-        }
-      }
+      const pkg = { ...codeSnippets.pkg }
+      pkg.name = kebabCase(name)
 
-      // JavaScript
-      const app = loadTemplate('js/app.js')
-      const www = loadTemplate('js/www')
+      let app, www
+      if (hasTs) {
+        app = loadTemplate('ts/app.ts')
+        www = loadTemplate('ts/www')
+      } else {
+        app = loadTemplate('js/app.js')
+        www = loadTemplate('js/www')
+      }
       const env = loadTemplate('js/.env')
 
       // App name

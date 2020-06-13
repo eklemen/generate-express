@@ -35,12 +35,12 @@ inquirer
     {
       type: 'list',
       name: 'typescript',
-      message: 'Use Typescript or es6+ Javascript',
+      message: 'Use Typescript or Javascript es6+',
       choices: [
-        'es6+ Javascript',
+        'Javascript es6+',
         'Typescript'
       ],
-      default: 'es6+ Javascript'
+      default: 'Javascript es6+'
     },
     {
       type: 'confirm',
@@ -64,7 +64,7 @@ inquirer
     {
       when: function (response) {
         // Only ask for view engine if Javascript is selected
-        return response.typescript === 'es6+ Javascript'
+        return response.typescript === 'Javascript es6+'
       },
       type: 'list',
       name: 'view',
@@ -136,8 +136,8 @@ inquirer
 
       let app, www
       if (hasTs) {
-        app = loadTemplate('ts/app.ts')
-        www = loadTemplate('ts/www')
+        app = loadTemplate('typescript/app.ts')
+        www = loadTemplate('typescript/www')
       } else {
         app = loadTemplate('js/app.js')
         www = loadTemplate('js/www')

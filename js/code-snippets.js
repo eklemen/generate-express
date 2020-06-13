@@ -59,7 +59,6 @@ const pkg = {
     'server': 'node ./dist/bin/www',
     'dev': 'NODE_ENV=development npm-run-all build server',
     'prod': 'NODE_ENV=production npm-run-all build server',
-    // 'transpile': 'babel ./server --out-dir dist --copy-files',
     'clean': 'rimraf dist'
   },
   nodemonConfig: {
@@ -75,15 +74,11 @@ const pkg = {
     ]
   },
   dependencies: {
-    // 'babel-plugin-inline-dotenv': '^1.5.0',
+    // TODO add env support for TS
     'debug': '~2.6.9',
     'express': '~4.16.1'
   },
   devDependencies: {
-    // '@babel/cli': '^7.8.4',
-    // '@babel/core': '^7.9.0',
-    // '@babel/node': '^7.8.7',
-    // '@babel/preset-env': '^7.9.0',
     'jest': '^25.2.7',
     'npm-run-all': '^4.1.5',
     'rimraf': '^3.0.2',

@@ -133,6 +133,22 @@ inquirer
       // Package
       const pkg = { ...codeSnippets.pkg }
       pkg.name = kebabCase(name)
+      if (hasTs) {
+        pkg.scripts.transpile = 'tsc'
+        pkg.dependencies['@types/compression'] = '^1.7.0'
+        pkg.dependencies['@types/cookie-parser'] = '1.4.2'
+        pkg.dependencies['@types/cors'] = '^2.8.6'
+        pkg.dependencies['@types/express'] = '^4.17.6'
+        pkg.dependencies['@types/helmet'] = '0.0.47'
+        pkg.dependencies['@types/morgan'] = '^1.9.1'
+      } else {
+        pkg.scripts.transpile = 'babel ./server --out-dir dist --copy-files'
+        pkg.dependencies['babel-plugin-inline-dotenv'] = '^1.5.0'
+        pkg.devDependencies['@babel/cli'] = '^7.8.4'
+        pkg.devDependencies['@babel/core'] = '^7.9.0'
+        pkg.devDependencies['@babel/node'] = '^7.8.7'
+        pkg.devDependencies['@babel/preset-env'] = '^7.9.0'
+      }
 
       let app, www
       if (hasTs) {

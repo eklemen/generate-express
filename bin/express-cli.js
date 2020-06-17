@@ -97,6 +97,7 @@ inquirer
     } = program
     const hasView = program.view !== 'none - api only'
     const hasTs = program.typescript === 'Typescript'
+    const tsjs = hasTs ? 'ts' : 'js'
 
     if (!exit.exited) {
       main()
@@ -152,15 +153,9 @@ inquirer
         pkg.devDependencies['@babel/preset-env'] = '^7.9.0'
       }
 
-      let app, www
-      if (hasTs) {
-        app = loadTemplate('typescript/app.ts')
-        www = loadTemplate('typescript/www')
-      } else {
-        app = loadTemplate('js/app.js')
-        www = loadTemplate('js/www')
-      }
-      const env = loadTemplate('js/.env')
+      const app = loadTemplate(`${tsjs}/app.${tsjs}`)
+      const www = loadTemplate(`${tsjs}/www`)
+      const env = loadTemplate(`${tsjs}/.env`)
 
       // App name
       www.locals.name = name
@@ -268,11 +263,17 @@ inquirer
 
       // copy route templates
       mkdir(directory, 'server/routes')
-      copyTemplate('js/routes/users.js', path.join(dir, '/server/routes/users.js'))
-      if (hasView) {
-        copyTemplate('js/routes/index.js', path.join(dir, '/server/routes/index.js'))
+      // TODO: rename the javascript route file names to match ts (helloRoute)
+      if (hasTs) {
+        copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
+        copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
       } else {
-        copyTemplate('js/routes/apiOnly.js', path.join(dir, '/server/routes/index.js'))
+        copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
+        if (hasView && !hasTs) {
+          copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+        } else {
+          copyTemplate(`${tsjs}/routes/apiOnly.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+        }
       }
 
       // Database
@@ -285,7 +286,7 @@ inquirer
           pkg.dependencies['mongojs'] = '^3.1.0'
           app.locals.modules.mongojs = 'mongojs'
           app.locals.db = codeSnippets.mongoJsCode
-          copyTemplate('js/controllers/userController.default.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'sequelize':
           pkg.dependencies['mysql2'] = '^1.6.4'
@@ -295,10 +296,10 @@ inquirer
           env.locals.db = codeSnippets.sequelizeEnvironmentVars
 
           mkdir(dir, 'server/config')
-          copyTemplateMulti('js/models/sequelize/config', dir + '/server/config', '*.js')
+          copyTemplateMulti(`${tsjs}/models/sequelize/config`, `${dir}/server/config`, `*.${tsjs}`)
           mkdir(dir, 'server/models')
-          copyTemplateMulti('js/models/sequelize', dir + '/server/models', '*.js')
-          copyTemplate('js/controllers/userController.sql.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplateMulti(`${tsjs}/models/sequelize`, `${dir}/server/models`, `*.${tsjs}`)
+          copyTemplate(`${tsjs}/controllers/userController.sql.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'mongo + mongoose':
           pkg.dependencies['mongoose'] = '^5.3.16'
@@ -306,11 +307,11 @@ inquirer
           app.locals.modules.mongoose = 'mongoose'
           app.locals.db = codeSnippets.mongoMongooseCode
           mkdir(dir, 'server/models')
-          copyTemplateMulti('js/models/mongoose', dir + '/server/models', '*.js')
-          copyTemplate('js/controllers/userController.mongo.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplateMulti(`${tsjs}/models/mongoose`, `${dir}/server/models`, `*.${tsjs}`)
+          copyTemplate(`${tsjs}/controllers/userController.mongo.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         default:
-          copyTemplate('js/controllers/userController.default.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
       }
 
       // Caching
@@ -403,18 +404,18 @@ inquirer
       }
 
       if (program.gitignore) {
-        copyTemplate('js/gitignore', path.join(dir, '.gitignore'))
+        copyTemplate(`${tsjs}/gitignore`, path.join(dir, '.gitignore'))
       }
 
       // sort dependencies like npm(1)
       pkg.dependencies = sortedObject(pkg.dependencies)
 
       // write files
-      write(path.join(dir, 'server/app.js'), app.render())
+      write(path.join(dir, `server/app.${tsjs}`), app.render())
       write(path.join(dir, 'package.json'), JSON.stringify(pkg, null, 2) + '\n')
-      copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
+      !hasTs && copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
       mkdir(dir, 'server/bin')
-      write(path.join(dir, 'server/bin/www.js'), www.render(), MODE_0755)
+      write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())
 
       if (dir !== '.') {

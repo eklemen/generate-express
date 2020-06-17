@@ -351,11 +351,10 @@ inquirer
       }
 
       // Index router mount
-      app.locals.localModules.indexRouter = './routes/index'
-      app.locals.mounts.push({ path: '/api', code: 'indexRouter' })
+      app.locals.localModules['{helloRouter, usersRouter}'] = './routes/index'
+      app.locals.mounts.push({ path: '/api', code: 'helloRouter' })
 
-      // User router mount
-      app.locals.localModules.usersRouter = './routes/users'
+      // // User router mount
       app.locals.mounts.push({ path: '/api/users', code: 'usersRouter' })
 
       // Template support

@@ -17,6 +17,7 @@ var MODE_0666 = parseInt('0666', 8)
 var MODE_0755 = parseInt('0755', 8)
 var TEMPLATE_DIR = path.join(__dirname, '..', 'templates')
 var codeSnippets = require('../js/code-snippets')
+var createTypescriptApp = require('../js/typescript/typescript-generate')
 
 var _exit = process.exit
 
@@ -135,6 +136,9 @@ inquirer
       const pkg = { ...codeSnippets.pkg }
       pkg.name = kebabCase(name)
       if (hasTs) {
+        createTypescriptApp(name, directory, program.view, program.database, program.cache, program);
+
+        return;
         pkg.scripts.transpile = 'tsc'
         pkg.devDependencies['@types/compression'] = '^1.7.0'
         pkg.devDependencies['@types/cookie-parser'] = '1.4.2'

@@ -29,6 +29,8 @@ const SCRIPT_TYPE = {
   JS: 'Javascript es6+',
   TS: 'Typescript'
 }
+const isJs = t => t === SCRIPT_TYPE.TS
+const isTs = t => !isJs(t)
 inquirer
   .prompt([
     {
@@ -55,7 +57,7 @@ inquirer
     // TODO: add dynamodb
     {
       when: function (response) {
-        return response.typescript === SCRIPT_TYPE.TS
+        return isTs(response.typescript)
       },
       // Remove mongojs if Typescript is selected due to missing @types
       type: 'list',
@@ -70,7 +72,7 @@ inquirer
     },
     {
       when: function (response) {
-        return response.typescript === SCRIPT_TYPE.JS
+        return isJs(response.typescript)
       },
       type: 'list',
       name: 'database',
@@ -86,7 +88,7 @@ inquirer
     {
       when: function (response) {
         // Only ask for view engine if Javascript is selected
-        return response.typescript === SCRIPT_TYPE.JS
+        return isJs(response.typescript)
       },
       type: 'list',
       name: 'view',
@@ -118,7 +120,7 @@ inquirer
       dir
     } = program
     const hasView = program.view !== 'none - api only'
-    const hasTs = program.typescript === SCRIPT_TYPE.TS
+    const hasTs = isTs(program.typescript)
     const tsjs = hasTs ? 'ts' : 'js'
 
     if (!exit.exited) {

@@ -25,6 +25,10 @@ let dirDefaultName = 'hello-world'
 if (process.argv[2] && process.argv[2].trim().length) {
   dirDefaultName = process.argv[2]
 }
+const scriptLang = {
+  JS: 'Javascript es6+',
+  TS: 'Typescript'
+}
 inquirer
   .prompt([
     {
@@ -37,10 +41,10 @@ inquirer
       name: 'typescript',
       message: 'Use Typescript or Javascript es6+',
       choices: [
-        'Javascript es6+',
-        'Typescript'
+        scriptLang.JS,
+        scriptLang.TS
       ],
-      default: 'Javascript es6+'
+      default: scriptLang.JS
     },
     {
       type: 'confirm',
@@ -48,11 +52,29 @@ inquirer
       message: 'Include a .gitignore?',
       default: true
     },
+    // TODO: add dynamodb
     {
+      when: function (response) {
+        return response.typescript === scriptLang.TS
+      },
+      // Remove mongojs if Typescript is selected due to missing @types
       type: 'list',
       name: 'database',
       message: 'Include database config:',
-      // TODO: add dynamodb
+      choices: [
+        'none',
+        'mongo + mongoose',
+        'sequelize'
+      ],
+      default: 'none'
+    },
+    {
+      when: function (response) {
+        return response.typescript === scriptLang.JS
+      },
+      type: 'list',
+      name: 'database',
+      message: 'Include database config:',
       choices: [
         'none',
         'mongojs',
@@ -64,7 +86,7 @@ inquirer
     {
       when: function (response) {
         // Only ask for view engine if Javascript is selected
-        return response.typescript === 'Javascript es6+'
+        return response.typescript === scriptLang.JS
       },
       type: 'list',
       name: 'view',
@@ -96,7 +118,7 @@ inquirer
       dir
     } = program
     const hasView = program.view !== 'none - api only'
-    const hasTs = program.typescript === 'Typescript'
+    const hasTs = program.typescript === scriptLang.TS
     const tsjs = hasTs ? 'ts' : 'js'
 
     if (!exit.exited) {
@@ -333,6 +355,11 @@ inquirer
           app.locals.modules.redis = 'redis'
           app.locals.cache = codeSnippets.redisCode
           env.locals.cache = codeSnippets.redisEnvironmentVars
+          if (hasTs) {
+            pkg.devDependencies['@types/redis'] = '^2.8.27'
+          } else {
+
+          }
       }
 
       if (program.view) {

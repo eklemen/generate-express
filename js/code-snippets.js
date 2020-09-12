@@ -38,12 +38,13 @@ mongoose.connect(mongoUri, mongooseConfigs);`,
 `/**
 * Redis Setup. For more options for redis client, go to: https://www.npmjs.com/package/redis#options-object-properties
 */
-const redisPort = process.env.REDIS_PORT || 6379;
+const redisPort = parseInt(process.env.REDIS_PORT) || 6379;
 const redisHost = process.env.REDIS_HOST || '127.0.0.1';
 const redisClient = redis.createClient(redisPort, redisHost);
 
 redisClient.on("error", (error) =>  {
  console.error(error);
+ console.log('\x1b[33m%s\x1b[0m', 'Make sure redis is installed and running.');
 });
 
 redisClient.on('connect', () => {

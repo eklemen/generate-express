@@ -29,7 +29,7 @@ const SCRIPT_TYPE = {
   JS: 'Javascript es6+',
   TS: 'Typescript'
 }
-const isJs = t => t === SCRIPT_TYPE.TS
+const isJs = t => t === SCRIPT_TYPE.JS
 const isTs = t => !isJs(t)
 inquirer
   .prompt([

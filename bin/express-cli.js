@@ -25,7 +25,7 @@ let dirDefaultName = 'hello-world'
 if (process.argv[2] && process.argv[2].trim().length) {
   dirDefaultName = process.argv[2]
 }
-const scriptLang = {
+const SCRIPT_TYPE = {
   JS: 'Javascript es6+',
   TS: 'Typescript'
 }
@@ -41,10 +41,10 @@ inquirer
       name: 'typescript',
       message: 'Use Typescript or Javascript es6+',
       choices: [
-        scriptLang.JS,
-        scriptLang.TS
+        SCRIPT_TYPE.JS,
+        SCRIPT_TYPE.TS
       ],
-      default: scriptLang.JS
+      default: SCRIPT_TYPE.JS
     },
     {
       type: 'confirm',
@@ -55,7 +55,7 @@ inquirer
     // TODO: add dynamodb
     {
       when: function (response) {
-        return response.typescript === scriptLang.TS
+        return response.typescript === SCRIPT_TYPE.TS
       },
       // Remove mongojs if Typescript is selected due to missing @types
       type: 'list',
@@ -70,7 +70,7 @@ inquirer
     },
     {
       when: function (response) {
-        return response.typescript === scriptLang.JS
+        return response.typescript === SCRIPT_TYPE.JS
       },
       type: 'list',
       name: 'database',
@@ -86,7 +86,7 @@ inquirer
     {
       when: function (response) {
         // Only ask for view engine if Javascript is selected
-        return response.typescript === scriptLang.JS
+        return response.typescript === SCRIPT_TYPE.JS
       },
       type: 'list',
       name: 'view',
@@ -118,7 +118,7 @@ inquirer
       dir
     } = program
     const hasView = program.view !== 'none - api only'
-    const hasTs = program.typescript === scriptLang.TS
+    const hasTs = program.typescript === SCRIPT_TYPE.TS
     const tsjs = hasTs ? 'ts' : 'js'
 
     if (!exit.exited) {

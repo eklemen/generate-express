@@ -145,6 +145,7 @@ inquirer
         pkg.devDependencies['@types/morgan'] = '^1.9.1'
         pkg.devDependencies.tslib = '^2.0.0'
         pkg.devDependencies.typescript = '^3.9.5'
+        pkg.devDependencies.dotenv = '^8.2.0'
       } else {
         pkg.scripts.transpile = 'babel ./server --out-dir dist --copy-files'
         pkg.devDependencies['babel-plugin-inline-dotenv'] = '^1.5.0'
@@ -293,8 +294,12 @@ inquirer
         case 'sequelize':
           // TODO: prompt for which flavor of SQL (mysql/pg/maria/sqlite)
           pkg.dependencies['mysql2'] = '^1.6.4'
-          pkg.dependencies['sequelize'] = '^4.41.2'
-          app.locals.localModules.db = './models'
+          pkg.dependencies['sequelize'] = '^6.3.5'
+          if (hasTs) {
+            pkg.dependencies['@types/sequelize'] = '^4.28.9'
+          } else {
+            app.locals.localModules.db = './models'
+          }
           www.locals.db = codeSnippets.sequelizeCode
           env.locals.db = codeSnippets.sequelizeEnvironmentVars
 

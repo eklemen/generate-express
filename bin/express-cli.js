@@ -139,6 +139,7 @@ inquirer
         pkg.devDependencies['@types/compression'] = '^1.7.0'
         pkg.devDependencies['@types/cookie-parser'] = '1.4.2'
         pkg.devDependencies['@types/cors'] = '^2.8.6'
+        pkg.devDependencies['@types/debug'] = '^4.1.5'
         pkg.devDependencies['@types/express'] = '^4.17.6'
         pkg.devDependencies['@types/helmet'] = '0.0.47'
         pkg.devDependencies['@types/morgan'] = '^1.9.1'
@@ -284,11 +285,13 @@ inquirer
       switch (program.database) {
         case 'mongojs':
           pkg.dependencies['mongojs'] = '^3.1.0'
+          if (hasTs) pkg.devDependencies['@types/mongojs'] = '^4.1.5'
           app.locals.modules.mongojs = 'mongojs'
           app.locals.db = codeSnippets.mongoJsCode
           copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'sequelize':
+          // TODO: prompt for which flavor of SQL (mysql/pg/maria/sqlite)
           pkg.dependencies['mysql2'] = '^1.6.4'
           pkg.dependencies['sequelize'] = '^4.41.2'
           app.locals.localModules.db = './models'
@@ -353,6 +356,8 @@ inquirer
 
       // Index router mount
       // TODO: make routes/index only export
+      // app.locals.localModules['* as routes'] = './routes/index'
+
       app.locals.localModules.helloRouter = './routes/index'
       app.locals.mounts.push({ path: '/api', code: 'helloRouter' })
 
@@ -413,7 +418,12 @@ inquirer
       // write files
       write(path.join(dir, `server/app.${tsjs}`), app.render())
       write(path.join(dir, 'package.json'), JSON.stringify(pkg, null, 2) + '\n')
-      !hasTs && copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
+      if (hasTs) {
+        copyTemplate('ts/tsconfig.json', path.join(dir, 'tsconfig.json'))
+        copyTemplate('ts/tslint.json', path.join(dir, 'tslint.json'))
+      } else {
+        copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
+      }
       mkdir(dir, 'server/bin')
       write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())

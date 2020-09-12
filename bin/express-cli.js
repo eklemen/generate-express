@@ -146,6 +146,7 @@ inquirer
         pkg.devDependencies.tslib = '^2.0.0'
         pkg.devDependencies.typescript = '^3.9.5'
         pkg.devDependencies.dotenv = '^8.2.0'
+        pkg.nodemonConfig.ext = 'ts'
       } else {
         pkg.scripts.transpile = 'babel ./server --out-dir dist --copy-files'
         pkg.devDependencies['babel-plugin-inline-dotenv'] = '^1.5.0'
@@ -297,10 +298,11 @@ inquirer
           pkg.dependencies['sequelize'] = '^6.3.5'
           if (hasTs) {
             pkg.dependencies['@types/sequelize'] = '^4.28.9'
+            www.locals.db = codeSnippets.sequelizeCodeTS
           } else {
             app.locals.localModules.db = './models'
+            www.locals.db = codeSnippets.sequelizeCode
           }
-          www.locals.db = codeSnippets.sequelizeCode
           env.locals.db = codeSnippets.sequelizeEnvironmentVars
 
           mkdir(dir, 'server/config')

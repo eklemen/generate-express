@@ -13,6 +13,13 @@ db.sequelize.sync({ force: true }).then(function() {
     console.log("App listening on PORT " + port);
     });
 });`,
+  sequelizeCodeTS:
+    `// Run sequelize before listen
+db.sync({ force: true }).then(function() {
+    app.listen(port, function() {
+    console.log("App listening on PORT " + port);
+    });
+});`,
 
   sequelizeEnvironmentVars:
 `USERNAME=root

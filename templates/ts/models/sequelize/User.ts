@@ -21,7 +21,7 @@ User.init(
       },
     },
     {
-      tableName: "User",
+      tableName: "Users",
       sequelize,
     }
 );

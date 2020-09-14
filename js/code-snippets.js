@@ -55,7 +55,7 @@ redisClient.on('connect', () => {
   redisEnvironmentVars:
 `REDIS_PORT=6379
 REDIS_HOST=127.0.0.1`
-}
+};
 
 const pkg = {
   version: '1.0.0',
@@ -82,7 +82,6 @@ const pkg = {
     ]
   },
   dependencies: {
-    // TODO add env support for TS
     'debug': '~2.6.9',
     'express': '~4.16.1'
   },
@@ -92,7 +91,7 @@ const pkg = {
     'rimraf': '^3.0.2',
     'nodemon': '^2.0.3'
   }
-}
-codeSnippets.pkg = pkg
+};
+codeSnippets.pkg = pkg;
 
-module.exports = codeSnippets
+module.exports = codeSnippets;

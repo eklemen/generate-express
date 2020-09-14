@@ -428,7 +428,10 @@ inquirer
         execSync(`cd ${dir} && npm install`, { stdio: 'inherit' })
         depsInstalled = true
       } catch (err) {
-        console.log(chalk.red('Unable to install npm dependencies.'))
+        console.log(
+          chalk.red(
+            `Warning: dependencies failed to install. Please run ${chalk.blue('npm install')}`
+          ))
       }
     }
 

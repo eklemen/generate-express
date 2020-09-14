@@ -26,6 +26,12 @@ let dirDefaultName = 'hello-world'
 if (process.argv[2] && process.argv[2].trim().length) {
   dirDefaultName = process.argv[2]
 }
+const SCRIPT_TYPE = {
+  JS: 'Javascript es6+',
+  TS: 'Typescript'
+}
+const isJs = t => t === SCRIPT_TYPE.JS
+const isTs = t => !isJs(t)
 inquirer
   .prompt([
     {
@@ -34,16 +40,44 @@ inquirer
       default: dirDefaultName
     },
     {
+      type: 'list',
+      name: 'typescript',
+      message: 'Use Typescript or Javascript es6+',
+      choices: [
+        SCRIPT_TYPE.JS,
+        SCRIPT_TYPE.TS
+      ],
+      default: SCRIPT_TYPE.JS
+    },
+    {
       type: 'confirm',
       name: 'gitignore',
       message: 'Include a .gitignore?',
       default: true
     },
+    // TODO: add dynamodb
     {
+      when: function (response) {
+        return isTs(response.typescript)
+      },
+      // Remove mongojs if Typescript is selected due to missing @types
       type: 'list',
       name: 'database',
       message: 'Include database config:',
-      // TODO: add dynamodb
+      choices: [
+        'none',
+        'mongo + mongoose',
+        'sequelize'
+      ],
+      default: 'none'
+    },
+    {
+      when: function (response) {
+        return isJs(response.typescript)
+      },
+      type: 'list',
+      name: 'database',
+      message: 'Include database config:',
       choices: [
         'none',
         'mongojs',
@@ -53,6 +87,10 @@ inquirer
       default: 'none'
     },
     {
+      when: function (response) {
+        // Only ask for view engine if Javascript is selected
+        return isJs(response.typescript)
+      },
       type: 'list',
       name: 'view',
       message: 'View engine or just API:',
@@ -83,6 +121,8 @@ inquirer
       dir
     } = program
     const hasView = program.view !== 'none - api only'
+    const hasTs = isTs(program.typescript)
+    const tsjs = hasTs ? 'ts' : 'js'
 
     if (!exit.exited) {
       main()
@@ -117,52 +157,33 @@ inquirer
 
     function createApplication (name, directory) {
       // Package
-      const pkg = {
-        name: kebabCase(name),
-        version: '1.0.0',
-        private: true,
-        scripts: {
-          'start': 'nodemon',
-          'build': 'npm-run-all clean transpile',
-          'server': 'node ./dist/bin/www',
-          'dev': 'NODE_ENV=development npm-run-all build server',
-          'prod': 'NODE_ENV=production npm-run-all build server',
-          'transpile': 'babel ./server --out-dir dist --copy-files',
-          'clean': 'rimraf dist'
-        },
-        nodemonConfig: {
-          'exec': 'npm run dev',
-          'watch': [
-            'server/*',
-            'public/*'
-          ],
-          'ignore': [
-            '**/__tests__/**',
-            '*.test.js',
-            '*.spec.js'
-          ]
-        },
-        dependencies: {
-          'babel-plugin-inline-dotenv': '^1.5.0',
-          'debug': '~2.6.9',
-          'express': '~4.16.1'
-        },
-        devDependencies: {
-          '@babel/cli': '^7.8.4',
-          '@babel/core': '^7.9.0',
-          '@babel/node': '^7.8.7',
-          '@babel/preset-env': '^7.9.0',
-          'jest': '^25.2.7',
-          'npm-run-all': '^4.1.5',
-          'rimraf': '^3.0.2',
-          'nodemon': '^2.0.3'
-        }
+      const pkg = { ...codeSnippets.pkg }
+      pkg.name = kebabCase(name)
+      if (hasTs) {
+        pkg.scripts.transpile = 'tsc'
+        pkg.devDependencies['@types/compression'] = '^1.7.0'
+        pkg.devDependencies['@types/cookie-parser'] = '1.4.2'
+        pkg.devDependencies['@types/cors'] = '^2.8.6'
+        pkg.devDependencies['@types/debug'] = '^4.1.5'
+        pkg.devDependencies['@types/express'] = '^4.17.6'
+        pkg.devDependencies['@types/helmet'] = '0.0.47'
+        pkg.devDependencies['@types/morgan'] = '^1.9.1'
+        pkg.devDependencies.tslib = '^2.0.0'
+        pkg.devDependencies.typescript = '^3.9.5'
+        pkg.devDependencies.dotenv = '^8.2.0'
+        pkg.nodemonConfig.ext = 'ts'
+      } else {
+        pkg.scripts.transpile = 'babel ./server --out-dir dist --copy-files'
+        pkg.devDependencies['babel-plugin-inline-dotenv'] = '^1.5.0'
+        pkg.devDependencies['@babel/cli'] = '^7.8.4'
+        pkg.devDependencies['@babel/core'] = '^7.9.0'
+        pkg.devDependencies['@babel/node'] = '^7.8.7'
+        pkg.devDependencies['@babel/preset-env'] = '^7.9.0'
       }
 
-      // JavaScript
-      const app = loadTemplate('js/app.js')
-      const www = loadTemplate('js/www')
-      const env = loadTemplate('js/.env')
+      const app = loadTemplate(`${tsjs}/app.${tsjs}`)
+      const www = loadTemplate(`${tsjs}/www`)
+      const env = loadTemplate(`${tsjs}/.env`)
 
       // App name
       www.locals.name = name
@@ -270,11 +291,17 @@ inquirer
 
       // copy route templates
       mkdir(directory, 'server/routes')
-      copyTemplate('js/routes/users.js', path.join(dir, '/server/routes/users.js'))
-      if (hasView) {
-        copyTemplate('js/routes/index.js', path.join(dir, '/server/routes/index.js'))
+      // TODO: rename the javascript route file names to match ts (helloRoute)
+      if (hasTs) {
+        copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
+        copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
       } else {
-        copyTemplate('js/routes/apiOnly.js', path.join(dir, '/server/routes/index.js'))
+        copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
+        if (hasView && !hasTs) {
+          copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+        } else {
+          copyTemplate(`${tsjs}/routes/apiOnly.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+        }
       }
 
       // Database
@@ -285,33 +312,41 @@ inquirer
       switch (program.database) {
         case 'mongojs':
           pkg.dependencies['mongojs'] = '^3.1.0'
+          if (hasTs) pkg.devDependencies['@types/mongojs'] = '^4.1.5'
           app.locals.modules.mongojs = 'mongojs'
           app.locals.db = codeSnippets.mongoJsCode
-          copyTemplate('js/controllers/userController.default.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'sequelize':
+          // TODO: prompt for which flavor of SQL (mysql/pg/maria/sqlite)
           pkg.dependencies['mysql2'] = '^1.6.4'
-          pkg.dependencies['sequelize'] = '^4.41.2'
-          app.locals.localModules.db = './models'
-          www.locals.db = codeSnippets.sequelizeCode
+          pkg.dependencies['sequelize'] = '^6.3.5'
+          if (hasTs) {
+            pkg.dependencies['@types/sequelize'] = '^4.28.9'
+            www.locals.db = codeSnippets.sequelizeCodeTS
+          } else {
+            app.locals.localModules.db = './models'
+            www.locals.db = codeSnippets.sequelizeCode
+          }
           env.locals.db = codeSnippets.sequelizeEnvironmentVars
 
           mkdir(dir, 'server/config')
-          copyTemplateMulti('js/models/sequelize/config', dir + '/server/config', '*.js')
+          copyTemplateMulti(`${tsjs}/models/sequelize/config`, `${dir}/server/config`, `*.${tsjs}`)
           mkdir(dir, 'server/models')
-          copyTemplateMulti('js/models/sequelize', dir + '/server/models', '*.js')
-          copyTemplate('js/controllers/userController.sql.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplateMulti(`${tsjs}/models/sequelize`, `${dir}/server/models`, `*.${tsjs}`)
+          copyTemplate(`${tsjs}/controllers/userController.sql.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'mongo + mongoose':
           pkg.dependencies['mongoose'] = '^5.3.16'
+          pkg.devDependencies['@types/mongoose'] = '^5.7.24'
           app.locals.modules.mongoose = 'mongoose'
           app.locals.db = codeSnippets.mongoMongooseCode
           mkdir(dir, 'server/models')
-          copyTemplateMulti('js/models/mongoose', dir + '/server/models', '*.js')
-          copyTemplate('js/controllers/userController.mongo.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplateMulti(`${tsjs}/models/mongoose`, `${dir}/server/models`, `*.${tsjs}`)
+          copyTemplate(`${tsjs}/controllers/userController.mongo.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         default:
-          copyTemplate('js/controllers/userController.default.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
       }
 
       // Caching
@@ -323,6 +358,11 @@ inquirer
           app.locals.modules.redis = 'redis'
           app.locals.cache = codeSnippets.redisCode
           env.locals.cache = codeSnippets.redisEnvironmentVars
+          if (hasTs) {
+            pkg.devDependencies['@types/redis'] = '^2.8.27'
+          } else {
+
+          }
       }
 
       if (program.view) {
@@ -352,8 +392,11 @@ inquirer
       }
 
       // Index router mount
-      app.locals.localModules.indexRouter = './routes/index'
-      app.locals.mounts.push({ path: '/api', code: 'indexRouter' })
+      // TODO: make routes/index only export
+      // app.locals.localModules['* as routes'] = './routes/index'
+
+      app.locals.localModules.helloRouter = './routes/index'
+      app.locals.mounts.push({ path: '/api', code: 'helloRouter' })
 
       // User router mount
       app.locals.localModules.usersRouter = './routes/users'
@@ -403,18 +446,23 @@ inquirer
       }
 
       if (program.gitignore) {
-        copyTemplate('js/gitignore', path.join(dir, '.gitignore'))
+        copyTemplate(`${tsjs}/gitignore`, path.join(dir, '.gitignore'))
       }
 
       // sort dependencies like npm(1)
       pkg.dependencies = sortedObject(pkg.dependencies)
 
       // write files
-      write(path.join(dir, 'server/app.js'), app.render())
+      write(path.join(dir, `server/app.${tsjs}`), app.render())
       write(path.join(dir, 'package.json'), JSON.stringify(pkg, null, 2) + '\n')
-      copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
+      if (hasTs) {
+        copyTemplate('ts/tsconfig.json', path.join(dir, 'tsconfig.json'))
+        copyTemplate('ts/tslint.json', path.join(dir, 'tslint.json'))
+      } else {
+        copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
+      }
       mkdir(dir, 'server/bin')
-      write(path.join(dir, 'server/bin/www.js'), www.render(), MODE_0755)
+      write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())
       npmInstall()
       printInfoLogs()

@@ -416,16 +416,16 @@ inquirer
       mkdir(dir, 'server/bin')
       write(path.join(dir, 'server/bin/www.js'), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())
-      npmInstall(dir)
+      npmInstall()
       printInfoLogs()
     }
 
     // Install npm dependencies
     let depsInstalled = false
-    function npmInstall (directory) {
+    function npmInstall () {
       console.log(chalk.blue.bold('Installing npm packages...'))
       try {
-        execSync(`cd ${directory} && npm install`, { stdio: 'inherit' })
+        execSync(`cd ${dir} && npm install`, { stdio: 'inherit' })
         depsInstalled = true
       } catch (err) {
         console.log(chalk.red('Unable to install npm dependencies.'))
@@ -547,7 +547,6 @@ inquirer
       emptyDirectory(destinationPath, function (empty) {
         if (empty || program.force) {
           createApplication(appName, destinationPath)
-          // npmInstall(destinationPath)
         } else {
           const message = chalk.red.bold(`WARNING: ./${appName} is not empty, erase contents and continue? [y/N] `)
           confirm(message, function (ok) {
@@ -555,7 +554,6 @@ inquirer
               rimraf(destinationPath, function () {
                 process.stdin.destroy()
                 createApplication(appName, destinationPath)
-                // npmInstall(destinationPath)
               })
             } else {
               console.log(chalk.red.bold('aborting'))

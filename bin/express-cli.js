@@ -12,6 +12,7 @@ var inquirer = require('inquirer')
 var kebabCase = require('lodash.kebabcase')
 var chalk = require('chalk')
 var rimraf = require('rimraf')
+var execSync = require('child_process').execSync
 
 var MODE_0666 = parseInt('0666', 8)
 var MODE_0755 = parseInt('0755', 8)
@@ -415,21 +416,41 @@ inquirer
       mkdir(dir, 'server/bin')
       write(path.join(dir, 'server/bin/www.js'), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())
+      npmInstall(dir)
+      printInfoLogs()
+    }
 
+    // Install npm dependencies
+    let depsInstalled = false
+    function npmInstall (directory) {
+      console.log(chalk.blue.bold('Installing npm packages...'))
+      try {
+        execSync(`cd ${directory} && npm install`, { stdio: 'inherit' })
+        depsInstalled = true
+      } catch (err) {
+        console.log(chalk.red('Unable to install npm dependencies.'))
+      }
+    }
+
+    // Print informational logs
+    function printInfoLogs () {
       if (dir !== '.') {
         console.log()
         console.log('  change directory:')
         console.log(chalk.blue.bold(`    cd ${dir}`))
       }
 
-      console.log()
-      console.log('  install dependencies:')
-      console.log(chalk.blue.bold(`    npm install`))
+      if (!depsInstalled) {
+        console.log()
+        console.log('  install dependencies:')
+        console.log(chalk.blue.bold(`    npm install`))
+      }
       console.log()
       console.log('  run the app in dev watch mode:')
       console.log(chalk.blue.bold('    npm start'))
       console.log()
       console.log('Hello world: ', chalk.cyan.underline('localhost:3001/api'))
+      console.log('GET /users: ', chalk.cyan.underline('localhost:3001/api/users'))
 
       if (program.database === 'sequelize') {
         console.log()
@@ -526,6 +547,7 @@ inquirer
       emptyDirectory(destinationPath, function (empty) {
         if (empty || program.force) {
           createApplication(appName, destinationPath)
+          // npmInstall(destinationPath)
         } else {
           const message = chalk.red.bold(`WARNING: ./${appName} is not empty, erase contents and continue? [y/N] `)
           confirm(message, function (ok) {
@@ -533,6 +555,7 @@ inquirer
               rimraf(destinationPath, function () {
                 process.stdin.destroy()
                 createApplication(appName, destinationPath)
+                // npmInstall(destinationPath)
               })
             } else {
               console.log(chalk.red.bold('aborting'))

@@ -325,7 +325,6 @@ inquirer
             pkg.dependencies['@types/sequelize'] = '^4.28.9'
             www.locals.db = codeSnippets.sequelizeCodeTS
           } else {
-            app.locals.localModules.db = './models'
             www.locals.db = codeSnippets.sequelizeCode
           }
           env.locals.db = codeSnippets.sequelizeEnvironmentVars
@@ -624,7 +623,7 @@ inquirer
 
     function mkdir (base, directory) {
       const loc = path.join(base, directory)
-      console.log(chalk.cyan('   create: ' + chalk.green(loc + path.sep)))
+      console.log(chalk.cyan('   create : ' + chalk.green(loc + path.sep)))
       mkdirp.sync(loc, MODE_0755)
     }
 

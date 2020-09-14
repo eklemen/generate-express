@@ -12,6 +12,7 @@ var inquirer = require('inquirer')
 var kebabCase = require('lodash.kebabcase')
 var chalk = require('chalk')
 var rimraf = require('rimraf')
+var execSync = require('child_process').execSync
 
 var MODE_0666 = parseInt('0666', 8)
 var MODE_0755 = parseInt('0755', 8)
@@ -415,21 +416,44 @@ inquirer
       mkdir(dir, 'server/bin')
       write(path.join(dir, 'server/bin/www.js'), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())
+      npmInstall()
+      printInfoLogs()
+    }
 
+    // Install npm dependencies
+    let depsInstalled = false
+    function npmInstall () {
+      console.log(chalk.blue.bold('Installing npm packages...'))
+      try {
+        execSync(`cd ${dir} && npm install`, { stdio: 'inherit' })
+        depsInstalled = true
+      } catch (err) {
+        console.log(
+          chalk.red(
+            `Warning: dependencies failed to install. Please run ${chalk.blue('npm install')}`
+          ))
+      }
+    }
+
+    // Print informational logs
+    function printInfoLogs () {
       if (dir !== '.') {
         console.log()
         console.log('  change directory:')
         console.log(chalk.blue.bold(`    cd ${dir}`))
       }
 
-      console.log()
-      console.log('  install dependencies:')
-      console.log(chalk.blue.bold(`    npm install`))
+      if (!depsInstalled) {
+        console.log()
+        console.log('  install dependencies:')
+        console.log(chalk.blue.bold(`    npm install`))
+      }
       console.log()
       console.log('  run the app in dev watch mode:')
       console.log(chalk.blue.bold('    npm start'))
       console.log()
       console.log('Hello world: ', chalk.cyan.underline('localhost:3001/api'))
+      console.log('GET /users: ', chalk.cyan.underline('localhost:3001/api/users'))
 
       if (program.database === 'sequelize') {
         console.log()

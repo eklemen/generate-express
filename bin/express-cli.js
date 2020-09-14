@@ -161,24 +161,17 @@ inquirer
       pkg.name = kebabCase(name)
       if (hasTs) {
         pkg.scripts.transpile = 'tsc'
-        pkg.devDependencies['@types/compression'] = '^1.7.0'
-        pkg.devDependencies['@types/cookie-parser'] = '1.4.2'
-        pkg.devDependencies['@types/cors'] = '^2.8.6'
-        pkg.devDependencies['@types/debug'] = '^4.1.5'
-        pkg.devDependencies['@types/express'] = '^4.17.6'
-        pkg.devDependencies['@types/helmet'] = '0.0.47'
-        pkg.devDependencies['@types/morgan'] = '^1.9.1'
-        pkg.devDependencies.tslib = '^2.0.0'
-        pkg.devDependencies.typescript = '^3.9.5'
-        pkg.devDependencies.dotenv = '^8.2.0'
+        pkg.devDependencies = {
+          ...pkg.devDependencies,
+          ...codeSnippets.pkgBaseTypes
+        }
         pkg.nodemonConfig.ext = 'ts'
       } else {
         pkg.scripts.transpile = 'babel ./server --out-dir dist --copy-files'
-        pkg.devDependencies['babel-plugin-inline-dotenv'] = '^1.5.0'
-        pkg.devDependencies['@babel/cli'] = '^7.8.4'
-        pkg.devDependencies['@babel/core'] = '^7.9.0'
-        pkg.devDependencies['@babel/node'] = '^7.8.7'
-        pkg.devDependencies['@babel/preset-env'] = '^7.9.0'
+        pkg.devDependencies = {
+          ...pkg.devDependencies,
+          ...codeSnippets.pkgBabel
+        }
       }
 
       const app = loadTemplate(`${tsjs}/app.${tsjs}`)

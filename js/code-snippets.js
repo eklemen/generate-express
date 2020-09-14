@@ -93,6 +93,30 @@ const pkg = {
     'nodemon': '^2.0.3'
   }
 }
+
+const pkgBaseTypes = {
+  '@types/compression': '^1.7.0',
+  '@types/cookie-parser': '1.4.2',
+  '@types/cors': '^2.8.6',
+  '@types/debug': '^4.1.5',
+  '@types/express': '^4.17.6',
+  '@types/helmet': '0.0.47',
+  '@types/morgan': '^1.9.1',
+  'tslib': '^2.0.0',
+  'typescript': '^3.9.5',
+  'dotenv': '^8.2.0',
+}
+
+const pkgBabel = {
+  'babel-plugin-inline-dotenv': '^1.5.0',
+  '@babel/cli': '^7.8.4',
+  '@babel/core': '^7.9.0',
+  '@babel/node': '^7.8.7',
+  '@babel/preset-env': '^7.9.0'
+}
+
 codeSnippets.pkg = pkg
+codeSnippets.pkgBaseTypes = pkgBaseTypes
+codeSnippets.pkgBabel = pkgBabel
 
 module.exports = codeSnippets

@@ -318,15 +318,9 @@ inquirer
       env.locals.cache = false
       switch (program.cache) {
         case 'redis':
-          pkg.dependencies['redis'] = '^3.0.2'
           app.locals.modules.redis = 'redis'
           app.locals.cache = codeSnippets.redisCode
           env.locals.cache = codeSnippets.redisEnvironmentVars
-          if (hasTs) {
-            pkg.devDependencies['@types/redis'] = '^2.8.27'
-          } else {
-
-          }
       }
 
       if (program.view) {
@@ -335,22 +329,22 @@ inquirer
           case 'compass':
             app.locals.modules.compass = 'node-compass'
             app.locals.uses.push("compass({ mode: 'expanded' })")
-            pkg.dependencies['node-compass'] = '0.2.3'
+            // pkg.dependencies['node-compass'] = '0.2.3'
             break
           case 'less':
             app.locals.modules.lessMiddleware = 'less-middleware'
             app.locals.uses.push("lessMiddleware(path.join(__dirname, 'public'))")
-            pkg.dependencies['less-middleware'] = '~2.2.1'
+            // pkg.dependencies['less-middleware'] = '~2.2.1'
             break
           case 'sass':
             app.locals.modules.sassMiddleware = 'node-sass-middleware'
             app.locals.uses.push("sassMiddleware({\n  src: path.join(__dirname, 'public'),\n  dest: path.join(__dirname, 'public'),\n  indentedSyntax: true, // true = .sass and false = .scss\n  sourceMap: true\n})")
-            pkg.dependencies['node-sass-middleware'] = '0.11.0'
+            // pkg.dependencies['node-sass-middleware'] = '0.11.0'
             break
           case 'stylus':
             app.locals.modules.stylus = 'stylus'
             app.locals.uses.push("stylus.middleware(path.join(__dirname, 'public'))")
-            pkg.dependencies['stylus'] = '0.54.5'
+            // pkg.dependencies['stylus'] = '0.54.5'
             break
         }
       }
@@ -374,35 +368,27 @@ inquirer
             engine: 'dust',
             render: 'adaro.dust()'
           }
-          pkg.dependencies.adaro = '~1.0.4'
           break
         case 'ejs':
           app.locals.view = { engine: 'ejs' }
-          pkg.dependencies.ejs = '~2.6.1'
           break
         case 'hbs':
           app.locals.view = { engine: 'hbs' }
-          pkg.dependencies.hbs = '~4.0.4'
           break
         case 'hjs':
           app.locals.view = { engine: 'hjs' }
-          pkg.dependencies.hjs = '~0.0.6'
           break
         case 'jade':
           app.locals.view = { engine: 'jade' }
-          pkg.dependencies.jade = '~1.11.0'
           break
         case 'pug':
           app.locals.view = { engine: 'pug' }
-          pkg.dependencies.pug = '2.0.0-beta11'
           break
         case 'twig':
           app.locals.view = { engine: 'twig' }
-          pkg.dependencies.twig = '~0.10.3'
           break
         case 'vash':
           app.locals.view = { engine: 'vash' }
-          pkg.dependencies.vash = '~0.12.6'
           break
         default:
           app.locals.view = false
@@ -413,12 +399,9 @@ inquirer
         copyTemplate(`${tsjs}/gitignore`, path.join(dir, '.gitignore'))
       }
 
-      // sort dependencies like npm(1)
-      pkg.dependencies = sortedObject(pkg.dependencies)
-
       // write files
       write(path.join(dir, `server/app.${tsjs}`), app.render())
-      write(path.join(dir, 'package.json'), JSON.stringify(pkg, null, 2) + '\n')
+      write(path.join(dir, 'package.json'), JSON.stringify(pkg.package, null, 2) + '\n')
       if (hasTs) {
         copyTemplate('ts/tsconfig.json', path.join(dir, 'tsconfig.json'))
         copyTemplate('ts/tslint.json', path.join(dir, 'tslint.json'))

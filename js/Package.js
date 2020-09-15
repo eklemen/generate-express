@@ -1,4 +1,5 @@
 var kebabCase = require('lodash.kebabcase')
+var sortedObject = require('sorted-object')
 
 const tsBase = {
   '@types/compression': '^1.7.0',
@@ -79,6 +80,9 @@ class Pkg {
     this.middlewares = middlewares
   }
   get package () {
+    // sort dependencies like npm
+    this.base.dependencies = sortedObject(this.base.dependencies)
+    this.base.devDependencies = sortedObject(this.base.devDependencies)
     return this.base
   }
   init () {

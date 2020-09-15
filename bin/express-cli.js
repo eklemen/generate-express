@@ -9,7 +9,6 @@ var readline = require('readline')
 var sortedObject = require('sorted-object')
 var util = require('util')
 var inquirer = require('inquirer')
-var kebabCase = require('lodash.kebabcase')
 var chalk = require('chalk')
 var rimraf = require('rimraf')
 var execSync = require('child_process').execSync
@@ -18,6 +17,7 @@ var MODE_0666 = parseInt('0666', 8)
 var MODE_0755 = parseInt('0755', 8)
 var TEMPLATE_DIR = path.join(__dirname, '..', 'templates')
 var codeSnippets = require('../js/code-snippets')
+var Pkg = require('../js/Package')
 
 var _exit = process.exit
 
@@ -157,22 +157,7 @@ inquirer
 
     function createApplication (name, directory) {
       // Package
-      const pkg = { ...codeSnippets.pkg }
-      pkg.name = kebabCase(name)
-      if (hasTs) {
-        pkg.scripts.transpile = 'tsc'
-        pkg.devDependencies = {
-          ...pkg.devDependencies,
-          ...codeSnippets.pkgBaseTypes
-        }
-        pkg.nodemonConfig.ext = 'ts'
-      } else {
-        pkg.scripts.transpile = 'babel ./server --out-dir dist --copy-files'
-        pkg.devDependencies = {
-          ...pkg.devDependencies,
-          ...codeSnippets.pkgBabel
-        }
-      }
+      const pkg = new Pkg({ name, hasTs, hasView, program }).init()
 
       const app = loadTemplate(`${tsjs}/app.${tsjs}`)
       const www = loadTemplate(`${tsjs}/www`)
@@ -190,7 +175,6 @@ inquirer
       // Request logger
       app.locals.modules.logger = 'morgan'
       app.locals.uses.push("logger('dev')")
-      pkg.dependencies.morgan = '^1.9.1'
 
       // Body parsers
       app.locals.uses.push('express.json()')
@@ -199,22 +183,18 @@ inquirer
       // Cookie parser
       app.locals.modules.cookieParser = 'cookie-parser'
       app.locals.uses.push('cookieParser()')
-      pkg.dependencies['cookie-parser'] = '^1.4.4'
 
       // Helmet
       app.locals.modules.helmet = 'helmet'
       app.locals.uses.push('helmet()')
-      pkg.dependencies['helmet'] = '^3.22.0'
 
       // CORS
       app.locals.modules.cors = 'cors'
       app.locals.uses.push('cors()')
-      pkg.dependencies['cors'] = '^2.8.5'
 
       // Compression middleware
       app.locals.modules.compression = 'compression'
       app.locals.uses.push('compression()')
-      pkg.dependencies['compression'] = '^1.7.4'
 
       if (directory !== '.') {
         mkdir(directory, '.')
@@ -227,7 +207,6 @@ inquirer
         mkdir(directory, 'public/images')
         mkdir(directory, 'public/stylesheets')
         mkdir(directory, 'server/views')
-        pkg.dependencies['http-errors'] = '~1.6.3'
         switch (program.view) {
           case 'dust':
             copyTemplateMulti('views', directory + '/server/views', '*.dust')
@@ -304,18 +283,13 @@ inquirer
       mkdir(dir, 'server/controllers')
       switch (program.database) {
         case 'mongojs':
-          pkg.dependencies['mongojs'] = '^3.1.0'
-          if (hasTs) pkg.devDependencies['@types/mongojs'] = '^4.1.5'
           app.locals.modules.mongojs = 'mongojs'
           app.locals.db = codeSnippets.mongoJsCode
           copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'sequelize':
           // TODO: prompt for which flavor of SQL (mysql/pg/maria/sqlite)
-          pkg.dependencies['mysql2'] = '^1.6.4'
-          pkg.dependencies['sequelize'] = '^6.3.5'
           if (hasTs) {
-            pkg.dependencies['@types/sequelize'] = '^4.28.9'
             www.locals.db = codeSnippets.sequelizeCodeTS
           } else {
             www.locals.db = codeSnippets.sequelizeCode
@@ -329,8 +303,6 @@ inquirer
           copyTemplate(`${tsjs}/controllers/userController.sql.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'mongo + mongoose':
-          pkg.dependencies['mongoose'] = '^5.3.16'
-          pkg.devDependencies['@types/mongoose'] = '^5.7.24'
           app.locals.modules.mongoose = 'mongoose'
           app.locals.db = codeSnippets.mongoMongooseCode
           mkdir(dir, 'server/models')

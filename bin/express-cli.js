@@ -411,6 +411,7 @@ inquirer
       write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())
       npmInstall()
+      gitInit()
       printInfoLogs()
     }
 
@@ -427,6 +428,9 @@ inquirer
             `Warning: dependencies failed to install. Please run ${chalk.blue('npm install')}`
           ))
       }
+    }
+    function gitInit () {
+      execSync(`cd ${dir} && git init`, { stdio: 'inherit' })
     }
 
     // Print informational logs

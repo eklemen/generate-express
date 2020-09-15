@@ -57,42 +57,4 @@ redisClient.on('connect', () => {
 REDIS_HOST=127.0.0.1`
 }
 
-const pkg = {
-  version: '1.0.0',
-  private: true,
-  main: 'dist/bin/www.js',
-  scripts: {
-    'start': 'nodemon',
-    'build': 'npm-run-all clean transpile',
-    'server': 'node ./dist/bin/www',
-    'dev': 'NODE_ENV=development npm-run-all build server',
-    'prod': 'NODE_ENV=production npm-run-all build server',
-    'clean': 'rimraf dist'
-  },
-  nodemonConfig: {
-    'exec': 'npm run dev',
-    'watch': [
-      'server/*',
-      'public/*'
-    ],
-    'ignore': [
-      '**/__tests__/**',
-      '*.test.js',
-      '*.spec.js'
-    ]
-  },
-  dependencies: {
-    // TODO add env support for TS
-    'debug': '~2.6.9',
-    'express': '~4.16.1'
-  },
-  devDependencies: {
-    'jest': '^25.2.7',
-    'npm-run-all': '^4.1.5',
-    'rimraf': '^3.0.2',
-    'nodemon': '^2.0.3'
-  }
-}
-codeSnippets.pkg = pkg
-
 module.exports = codeSnippets

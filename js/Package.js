@@ -209,4 +209,4 @@ class Pkg {
   }
 }
 
-export default Pkg
+module.exports = Pkg

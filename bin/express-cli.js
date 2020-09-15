@@ -6,17 +6,17 @@ var minimatch = require('minimatch')
 var mkdirp = require('mkdirp')
 var path = require('path')
 var readline = require('readline')
-var sortedObject = require('sorted-object')
 var util = require('util')
 var inquirer = require('inquirer')
-var kebabCase = require('lodash.kebabcase')
 var chalk = require('chalk')
 var rimraf = require('rimraf')
+var execSync = require('child_process').execSync
 
 var MODE_0666 = parseInt('0666', 8)
 var MODE_0755 = parseInt('0755', 8)
 var TEMPLATE_DIR = path.join(__dirname, '..', 'templates')
 var codeSnippets = require('../js/code-snippets')
+var Pkg = require('../js/Package')
 
 var _exit = process.exit
 
@@ -25,6 +25,12 @@ let dirDefaultName = 'hello-world'
 if (process.argv[2] && process.argv[2].trim().length) {
   dirDefaultName = process.argv[2]
 }
+const SCRIPT_TYPE = {
+  JS: 'Javascript es6+',
+  TS: 'Typescript'
+}
+const isJs = t => t === SCRIPT_TYPE.JS
+const isTs = t => !isJs(t)
 inquirer
   .prompt([
     {
@@ -33,16 +39,44 @@ inquirer
       default: dirDefaultName
     },
     {
+      type: 'list',
+      name: 'typescript',
+      message: 'Use Typescript or Javascript es6+',
+      choices: [
+        SCRIPT_TYPE.JS,
+        SCRIPT_TYPE.TS
+      ],
+      default: SCRIPT_TYPE.JS
+    },
+    {
       type: 'confirm',
       name: 'gitignore',
       message: 'Include a .gitignore?',
       default: true
     },
+    // TODO: add dynamodb
     {
+      when: function (response) {
+        return isTs(response.typescript)
+      },
+      // Remove mongojs if Typescript is selected due to missing @types
       type: 'list',
       name: 'database',
       message: 'Include database config:',
-      // TODO: add dynamodb
+      choices: [
+        'none',
+        'mongo + mongoose',
+        'sequelize'
+      ],
+      default: 'none'
+    },
+    {
+      when: function (response) {
+        return isJs(response.typescript)
+      },
+      type: 'list',
+      name: 'database',
+      message: 'Include database config:',
       choices: [
         'none',
         'mongojs',
@@ -52,6 +86,10 @@ inquirer
       default: 'none'
     },
     {
+      when: function (response) {
+        // Only ask for view engine if Javascript is selected
+        return isJs(response.typescript)
+      },
       type: 'list',
       name: 'view',
       message: 'View engine or just API:',
@@ -82,6 +120,8 @@ inquirer
       dir
     } = program
     const hasView = program.view !== 'none - api only'
+    const hasTs = isTs(program.typescript)
+    const tsjs = hasTs ? 'ts' : 'js'
 
     if (!exit.exited) {
       main()
@@ -116,52 +156,11 @@ inquirer
 
     function createApplication (name, directory) {
       // Package
-      const pkg = {
-        name: kebabCase(name),
-        version: '1.0.0',
-        private: true,
-        scripts: {
-          'start': 'nodemon',
-          'build': 'npm-run-all clean transpile',
-          'server': 'node ./dist/bin/www',
-          'dev': 'NODE_ENV=development npm-run-all build server',
-          'prod': 'NODE_ENV=production npm-run-all build server',
-          'transpile': 'babel ./server --out-dir dist --copy-files',
-          'clean': 'rimraf dist'
-        },
-        nodemonConfig: {
-          'exec': 'npm run dev',
-          'watch': [
-            'server/*',
-            'public/*'
-          ],
-          'ignore': [
-            '**/__tests__/**',
-            '*.test.js',
-            '*.spec.js'
-          ]
-        },
-        dependencies: {
-          'babel-plugin-inline-dotenv': '^1.5.0',
-          'debug': '~2.6.9',
-          'express': '~4.16.1'
-        },
-        devDependencies: {
-          '@babel/cli': '^7.8.4',
-          '@babel/core': '^7.9.0',
-          '@babel/node': '^7.8.7',
-          '@babel/preset-env': '^7.9.0',
-          'jest': '^25.2.7',
-          'npm-run-all': '^4.1.5',
-          'rimraf': '^3.0.2',
-          'nodemon': '^2.0.3'
-        }
-      }
+      const pkg = new Pkg({ name, hasTs, hasView, program }).init()
 
-      // JavaScript
-      const app = loadTemplate('js/app.js')
-      const www = loadTemplate('js/www')
-      const env = loadTemplate('js/.env')
+      const app = loadTemplate(`${tsjs}/app.${tsjs}`)
+      const www = loadTemplate(`${tsjs}/www`)
+      const env = loadTemplate(`${tsjs}/.env`)
 
       // App name
       www.locals.name = name
@@ -175,7 +174,6 @@ inquirer
       // Request logger
       app.locals.modules.logger = 'morgan'
       app.locals.uses.push("logger('dev')")
-      pkg.dependencies.morgan = '^1.9.1'
 
       // Body parsers
       app.locals.uses.push('express.json()')
@@ -184,22 +182,18 @@ inquirer
       // Cookie parser
       app.locals.modules.cookieParser = 'cookie-parser'
       app.locals.uses.push('cookieParser()')
-      pkg.dependencies['cookie-parser'] = '^1.4.4'
 
       // Helmet
       app.locals.modules.helmet = 'helmet'
       app.locals.uses.push('helmet()')
-      pkg.dependencies['helmet'] = '^3.22.0'
 
       // CORS
       app.locals.modules.cors = 'cors'
       app.locals.uses.push('cors()')
-      pkg.dependencies['cors'] = '^2.8.5'
 
       // Compression middleware
       app.locals.modules.compression = 'compression'
       app.locals.uses.push('compression()')
-      pkg.dependencies['compression'] = '^1.7.4'
 
       if (directory !== '.') {
         mkdir(directory, '.')
@@ -212,7 +206,6 @@ inquirer
         mkdir(directory, 'public/images')
         mkdir(directory, 'public/stylesheets')
         mkdir(directory, 'server/views')
-        pkg.dependencies['http-errors'] = '~1.6.3'
         switch (program.view) {
           case 'dust':
             copyTemplateMulti('views', directory + '/server/views', '*.dust')
@@ -269,11 +262,17 @@ inquirer
 
       // copy route templates
       mkdir(directory, 'server/routes')
-      copyTemplate('js/routes/users.js', path.join(dir, '/server/routes/users.js'))
-      if (hasView) {
-        copyTemplate('js/routes/index.js', path.join(dir, '/server/routes/index.js'))
+      // TODO: rename the javascript route file names to match ts (helloRoute)
+      if (hasTs) {
+        copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
+        copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
       } else {
-        copyTemplate('js/routes/apiOnly.js', path.join(dir, '/server/routes/index.js'))
+        copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
+        if (hasView && !hasTs) {
+          copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+        } else {
+          copyTemplate(`${tsjs}/routes/apiOnly.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+        }
       }
 
       // Database
@@ -283,34 +282,34 @@ inquirer
       mkdir(dir, 'server/controllers')
       switch (program.database) {
         case 'mongojs':
-          pkg.dependencies['mongojs'] = '^3.1.0'
           app.locals.modules.mongojs = 'mongojs'
           app.locals.db = codeSnippets.mongoJsCode
-          copyTemplate('js/controllers/userController.default.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'sequelize':
-          pkg.dependencies['mysql2'] = '^1.6.4'
-          pkg.dependencies['sequelize'] = '^4.41.2'
-          app.locals.localModules.db = './models'
-          www.locals.db = codeSnippets.sequelizeCode
+          // TODO: prompt for which flavor of SQL (mysql/pg/maria/sqlite)
+          if (hasTs) {
+            www.locals.db = codeSnippets.sequelizeCodeTS
+          } else {
+            www.locals.db = codeSnippets.sequelizeCode
+          }
           env.locals.db = codeSnippets.sequelizeEnvironmentVars
 
           mkdir(dir, 'server/config')
-          copyTemplateMulti('js/models/sequelize/config', dir + '/server/config', '*.js')
+          copyTemplateMulti(`${tsjs}/models/sequelize/config`, `${dir}/server/config`, `*.${tsjs}`)
           mkdir(dir, 'server/models')
-          copyTemplateMulti('js/models/sequelize', dir + '/server/models', '*.js')
-          copyTemplate('js/controllers/userController.sql.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplateMulti(`${tsjs}/models/sequelize`, `${dir}/server/models`, `*.${tsjs}`)
+          copyTemplate(`${tsjs}/controllers/userController.sql.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'mongo + mongoose':
-          pkg.dependencies['mongoose'] = '^5.3.16'
           app.locals.modules.mongoose = 'mongoose'
           app.locals.db = codeSnippets.mongoMongooseCode
           mkdir(dir, 'server/models')
-          copyTemplateMulti('js/models/mongoose', dir + '/server/models', '*.js')
-          copyTemplate('js/controllers/userController.mongo.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplateMulti(`${tsjs}/models/mongoose`, `${dir}/server/models`, `*.${tsjs}`)
+          copyTemplate(`${tsjs}/controllers/userController.mongo.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         default:
-          copyTemplate('js/controllers/userController.default.js', path.join(dir, '/server/controllers/userController.js'))
+          copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
       }
 
       // Caching
@@ -318,7 +317,6 @@ inquirer
       env.locals.cache = false
       switch (program.cache) {
         case 'redis':
-          pkg.dependencies['redis'] = '^3.0.2'
           app.locals.modules.redis = 'redis'
           app.locals.cache = codeSnippets.redisCode
           env.locals.cache = codeSnippets.redisEnvironmentVars
@@ -330,29 +328,32 @@ inquirer
           case 'compass':
             app.locals.modules.compass = 'node-compass'
             app.locals.uses.push("compass({ mode: 'expanded' })")
-            pkg.dependencies['node-compass'] = '0.2.3'
+            // pkg.dependencies['node-compass'] = '0.2.3'
             break
           case 'less':
             app.locals.modules.lessMiddleware = 'less-middleware'
             app.locals.uses.push("lessMiddleware(path.join(__dirname, 'public'))")
-            pkg.dependencies['less-middleware'] = '~2.2.1'
+            // pkg.dependencies['less-middleware'] = '~2.2.1'
             break
           case 'sass':
             app.locals.modules.sassMiddleware = 'node-sass-middleware'
             app.locals.uses.push("sassMiddleware({\n  src: path.join(__dirname, 'public'),\n  dest: path.join(__dirname, 'public'),\n  indentedSyntax: true, // true = .sass and false = .scss\n  sourceMap: true\n})")
-            pkg.dependencies['node-sass-middleware'] = '0.11.0'
+            // pkg.dependencies['node-sass-middleware'] = '0.11.0'
             break
           case 'stylus':
             app.locals.modules.stylus = 'stylus'
             app.locals.uses.push("stylus.middleware(path.join(__dirname, 'public'))")
-            pkg.dependencies['stylus'] = '0.54.5'
+            // pkg.dependencies['stylus'] = '0.54.5'
             break
         }
       }
 
       // Index router mount
-      app.locals.localModules.indexRouter = './routes/index'
-      app.locals.mounts.push({ path: '/api', code: 'indexRouter' })
+      // TODO: make routes/index only export
+      // app.locals.localModules['* as routes'] = './routes/index'
+
+      app.locals.localModules.helloRouter = './routes/index'
+      app.locals.mounts.push({ path: '/api', code: 'helloRouter' })
 
       // User router mount
       app.locals.localModules.usersRouter = './routes/users'
@@ -366,35 +367,27 @@ inquirer
             engine: 'dust',
             render: 'adaro.dust()'
           }
-          pkg.dependencies.adaro = '~1.0.4'
           break
         case 'ejs':
           app.locals.view = { engine: 'ejs' }
-          pkg.dependencies.ejs = '~2.6.1'
           break
         case 'hbs':
           app.locals.view = { engine: 'hbs' }
-          pkg.dependencies.hbs = '~4.0.4'
           break
         case 'hjs':
           app.locals.view = { engine: 'hjs' }
-          pkg.dependencies.hjs = '~0.0.6'
           break
         case 'jade':
           app.locals.view = { engine: 'jade' }
-          pkg.dependencies.jade = '~1.11.0'
           break
         case 'pug':
           app.locals.view = { engine: 'pug' }
-          pkg.dependencies.pug = '2.0.0-beta11'
           break
         case 'twig':
           app.locals.view = { engine: 'twig' }
-          pkg.dependencies.twig = '~0.10.3'
           break
         case 'vash':
           app.locals.view = { engine: 'vash' }
-          pkg.dependencies.vash = '~0.12.6'
           break
         default:
           app.locals.view = false
@@ -402,34 +395,63 @@ inquirer
       }
 
       if (program.gitignore) {
-        copyTemplate('js/gitignore', path.join(dir, '.gitignore'))
+        copyTemplate(`${tsjs}/gitignore`, path.join(dir, '.gitignore'))
       }
 
-      // sort dependencies like npm(1)
-      pkg.dependencies = sortedObject(pkg.dependencies)
-
       // write files
-      write(path.join(dir, 'server/app.js'), app.render())
-      write(path.join(dir, 'package.json'), JSON.stringify(pkg, null, 2) + '\n')
-      copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
+      write(path.join(dir, `server/app.${tsjs}`), app.render())
+      write(path.join(dir, 'package.json'), JSON.stringify(pkg.package, null, 2) + '\n')
+      if (hasTs) {
+        copyTemplate('ts/tsconfig.json', path.join(dir, 'tsconfig.json'))
+        copyTemplate('ts/tslint.json', path.join(dir, 'tslint.json'))
+      } else {
+        copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
+      }
       mkdir(dir, 'server/bin')
-      write(path.join(dir, 'server/bin/www.js'), www.render(), MODE_0755)
+      write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())
+      npmInstall()
+      gitInit()
+      printInfoLogs()
+    }
 
+    // Install npm dependencies
+    let depsInstalled = false
+    function npmInstall () {
+      console.log(chalk.blue.bold('Installing npm packages...'))
+      try {
+        execSync(`cd ${dir} && npm install`, { stdio: 'inherit' })
+        depsInstalled = true
+      } catch (err) {
+        console.log(
+          chalk.red(
+            `Warning: dependencies failed to install. Please run ${chalk.blue('npm install')}`
+          ))
+      }
+    }
+    function gitInit () {
+      execSync(`cd ${dir} && git init`, { stdio: 'inherit' })
+    }
+
+    // Print informational logs
+    function printInfoLogs () {
       if (dir !== '.') {
         console.log()
         console.log('  change directory:')
         console.log(chalk.blue.bold(`    cd ${dir}`))
       }
 
-      console.log()
-      console.log('  install dependencies:')
-      console.log(chalk.blue.bold(`    npm install`))
+      if (!depsInstalled) {
+        console.log()
+        console.log('  install dependencies:')
+        console.log(chalk.blue.bold(`    npm install`))
+      }
       console.log()
       console.log('  run the app in dev watch mode:')
       console.log(chalk.blue.bold('    npm start'))
       console.log()
       console.log('Hello world: ', chalk.cyan.underline('localhost:3001/api'))
+      console.log('GET /users: ', chalk.cyan.underline('localhost:3001/api/users'))
 
       if (program.database === 'sequelize') {
         console.log()
@@ -552,7 +574,7 @@ inquirer
 
     function mkdir (base, directory) {
       const loc = path.join(base, directory)
-      console.log(chalk.cyan('   create: ' + chalk.green(loc + path.sep)))
+      console.log(chalk.cyan('   create : ' + chalk.green(loc + path.sep)))
       mkdirp.sync(loc, MODE_0755)
     }
 

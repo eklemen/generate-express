@@ -89,7 +89,6 @@ class Pkg {
     this
       .addTranspiler()
       .addLanguageDevDeps()
-      .configureNodemon()
       .addMiddlewares()
       .addDb()
       .addCache()
@@ -97,17 +96,12 @@ class Pkg {
     return this
   }
   addTranspiler () {
-    const { scripts } = this.base
+    const { scripts, nodemonConfig } = this.base
     if (this.hasTs) {
       scripts.transpile = 'tsc'
+      nodemonConfig.ext = 'ts'
     } else {
       scripts.transpile = 'babel ./server --out-dir dist --copy-files'
-    }
-    return this
-  }
-  configureNodemon () {
-    if (this.hasTs) {
-      this.base.nodemonConfig.ext = 'ts'
     }
     return this
   }

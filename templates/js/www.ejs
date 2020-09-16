@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-
+/* eslint-disable no-console */
 /**
  * Module dependencies.
  */
@@ -32,7 +32,7 @@ const server = http.createServer(app);
 <% if (db) { %>
 <%- db %>;
 <%} else { %>
-server.listen(port, function() {
+server.listen(port, () => {
   console.log(`App listening on PORT ${port}`);
 });
 <% } %>
@@ -44,16 +44,16 @@ server.on('listening', onListening);
  */
 
 function normalizePort(val) {
-  const port = parseInt(val, 10);
+  const portNum = parseInt(val, 10);
 
-  if (Number.isNaN(port)) {
+  if (Number.isNaN(portNum)) {
     // named pipe
     return val;
   }
 
-  if (port >= 0) {
+  if (portNum >= 0) {
     // port number
-    return port;
+    return portNum;
   }
 
   return false;

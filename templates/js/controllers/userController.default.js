@@ -1,3 +1,3 @@
-export const getAllUsers = (req, res, next) => {
+export const getAllUsers = (req, res) => {
   res.send('User route');
 };

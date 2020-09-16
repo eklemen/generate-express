@@ -1,7 +1,7 @@
-import {User} from '../models';
+import { User } from '../models';
 
-export const getAllUsers = (req, res, next) => {
+export const getAllUsers = (_, res) => {
   User.findAll({}).then((data) => {
-    res.send({name: 'User Route', data});
+    res.send({ name: 'User Route', data });
   })
 };

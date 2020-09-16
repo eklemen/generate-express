@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import User from '../models/User';
 
-export const getAllUsers = (req: Request, res: Response, next: NextFunction) => {
+export const getAllUsers = (req: Request, res: Response) => {
   User.findAll({}).then((data) => {
     res.send({ name: 'User Route', data });
   })

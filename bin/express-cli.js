@@ -410,6 +410,7 @@ inquirer
       mkdir(dir, 'server/bin')
       write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())
+      copyTemplate(`${tsjs}/eslintrc.js`, path.join(dir, '.eslintrc.js'))
       npmInstall()
       gitInit()
       printInfoLogs()

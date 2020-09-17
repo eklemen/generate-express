@@ -92,6 +92,7 @@ class Pkg {
       .addMiddlewares()
       .addDb()
       .addCache()
+      .addLint()
       .addView()
     return this
   }
@@ -166,6 +167,18 @@ class Pkg {
       if (this.hasTs) {
         this.base.devDependencies['@types/redis'] = '^2.8.27'
       }
+    }
+    return this
+  }
+  // TODO: make this configurable via inquirer
+  // TODO: add option to auto-fix on save via nodemon
+  addLint () {
+    // will deprecate tslint in favor of typescript-eslint
+    if (!this.hasTs) {
+      this.base.devDependencies.eslint = '^7.9.0'
+      this.base.devDependencies['eslint-config-airbnb-base'] = '^14.2.0'
+      this.base.devDependencies['eslint-plugin-import'] = '^2.22.0'
+      this.base.scripts.lint = 'eslint ./server'
     }
     return this
   }

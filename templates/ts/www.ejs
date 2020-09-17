@@ -29,9 +29,7 @@ const server = http.createServer(app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-<% if (db) { %>
-<%- db %>;
-<%} else { %>
+<% if (db) { %><%- db %>;<%} else { %>
 server.listen(port, () => {
   console.log(`App listening on PORT ${port}`);
 });
@@ -63,7 +61,7 @@ function normalizePort(val: string) {
 /**
  * Event listener for HTTP server "error" event.
  */
-
+// eslint-disable-next-line no-undef
 function onError(error: NodeJS.ErrnoException) {
   if (error.syscall !== 'listen') {
     throw error;

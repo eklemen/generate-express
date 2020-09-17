@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 
-export const getAllUsers = (req: Request, res: Response, next: NextFunction) => {
+export const getAllUsers = (req: Request, res: Response) => {
   res.send('User route');
 };

@@ -22,4 +22,4 @@ module.exports = {
     radix: 0,
   },
 };
-  
+

@@ -1,8 +1,8 @@
-import mongoose, {Schema, Document} from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
 export type UserDocument = Document & {
     name: string;
-}
+};
 
 const UserSchema: Schema = new Schema({
     name: {

@@ -173,12 +173,15 @@ class Pkg {
   // TODO: make this configurable via inquirer
   // TODO: add option to auto-fix on save via nodemon
   addLint () {
-    // will deprecate tslint in favor of typescript-eslint
     if (!this.hasTs) {
       this.base.devDependencies.eslint = '^7.9.0'
       this.base.devDependencies['eslint-config-airbnb-base'] = '^14.2.0'
       this.base.devDependencies['eslint-plugin-import'] = '^2.22.0'
       this.base.scripts.lint = 'eslint ./server'
+    }
+    if (this.hasTs) {
+      this.base.devDependencies['@typescript-eslint/eslint-plugin'] = '^4.1.1'
+      this.base.devDependencies['@typescript-eslint/parser'] = '^4.1.1'
     }
     return this
   }

@@ -403,7 +403,6 @@ inquirer
       write(path.join(dir, 'package.json'), JSON.stringify(pkg.package, null, 2) + '\n')
       if (hasTs) {
         copyTemplate('ts/tsconfig.json', path.join(dir, 'tsconfig.json'))
-        copyTemplate('ts/tslint.json', path.join(dir, 'tslint.json'))
       } else {
         copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
       }

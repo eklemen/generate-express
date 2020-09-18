@@ -15,6 +15,7 @@ module.exports = {
   ],
   rules: {
     '@typescript-eslint/no-use-before-define': 0,
+    '@typescript-eslint/indent': 0, // off because this package does not work
     'arrow-parens': 0,
     'comma-dangle': 0,
     'import/prefer-default-export': 0,

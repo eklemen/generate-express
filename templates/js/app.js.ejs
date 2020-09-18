@@ -12,7 +12,6 @@ import <%- variable %> from '<%- localModules[variable] %>';
 <% }); -%>
 
 const app = express();
-
 <% if (db) { -%>
 // database setup
 <%- db %>
@@ -28,7 +27,6 @@ app.engine('<%- view.engine %>', <%- view.render %>);
 <% } -%>
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', '<%- view.engine %>');
-
 <% } -%>
 <% uses.forEach(function (use) { -%>
 app.use(<%- use %>);

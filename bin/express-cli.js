@@ -265,7 +265,8 @@ inquirer
       // TODO: rename the javascript route file names to match ts (helloRoute)
       if (hasTs) {
         copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
-        copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+        copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+        copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
       } else {
         copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
         if (hasView && !hasTs) {
@@ -352,7 +353,7 @@ inquirer
       // TODO: make routes/index only export
       // app.locals.localModules['* as routes'] = './routes/index'
 
-      app.locals.localModules.helloRouter = './routes/index'
+      app.locals.localModules.helloRouter = './routes/hello'
       app.locals.mounts.push({ path: '/api', code: 'helloRouter' })
 
       // User router mount

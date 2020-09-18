@@ -146,7 +146,8 @@ class Pkg {
         break
       case 'sequelize':
         this.base.dependencies.mysql2 = '^1.6.4'
-        this.base.dependencies.sequelize = '^6.3.5'
+        // downgraded from v6 due to bugs
+        this.base.dependencies.sequelize = '^5.x'
         if (this.hasTs) {
           this.base.devDependencies['@types/sequelize'] = '^4.28.9'
         }

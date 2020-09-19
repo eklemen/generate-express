@@ -4,21 +4,22 @@ const codeSnippets = {
 `const dbUri = process.env.MONGODB_URI || 'mydb';
 const collections = ['mycollection'];
 
+// eslint-disable-next-line
 const db = mongojs(dbUri, collections);`,
 
   sequelizeCode:
 `// Run sequelize before listen
-db.sequelize.sync({ force: true }).then(function() {
-    app.listen(port, function() {
-    console.log("App listening on PORT " + port);
-    });
+db.sequelize.sync({ force: true }).then(() => {
+  app.listen(port, () => {
+    console.log(\`App listening on PORT \${port}\`);
+  });
 });`,
   sequelizeCodeTS:
     `// Run sequelize before listen
-db.sync({ force: true }).then(function() {
-    app.listen(port, function() {
-    console.log("App listening on PORT " + port);
-    });
+db.sync({ force: true }).then(() => {
+  app.listen(port, () => {
+    console.log(\`App listening on PORT \${port}\`);
+  });
 });`,
 
   sequelizeEnvironmentVars:
@@ -42,14 +43,14 @@ const redisPort = parseInt(process.env.REDIS_PORT) || 6379;
 const redisHost = process.env.REDIS_HOST || '127.0.0.1';
 const redisClient = redis.createClient(redisPort, redisHost);
 
-redisClient.on("error", (error) =>  {
- console.error(error);
- console.log('\x1b[33m%s\x1b[0m', 'Make sure redis is installed and running.');
+redisClient.on('error', (error) => {
+  console.error(error);
+  console.log('\x1b[33m%s\x1b[0m', 'Make sure redis is installed and running.');
 });
 
 redisClient.on('connect', () => {
- console.log(\`Redis connected in port: \${redisPort}\`)
-})
+  console.log(\`Redis connected in port: \${redisPort}\`);
+});
 // --------------End of Redis Setup-----------------------`,
 
   redisEnvironmentVars:

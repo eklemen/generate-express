@@ -119,8 +119,8 @@ inquirer
     const {
       dir
     } = program
-    const hasView = program.view !== 'none - api only'
     const hasTs = isTs(program.typescript)
+    const hasView = (program.view !== 'none - api only') && !hasTs
     const tsjs = hasTs ? 'ts' : 'js'
 
     if (!exit.exited) {
@@ -265,13 +265,14 @@ inquirer
       // TODO: rename the javascript route file names to match ts (helloRoute)
       if (hasTs) {
         copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
-        copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+        copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+        copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
       } else {
         copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
-        if (hasView && !hasTs) {
-          copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+        if (hasView) {
+          copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
         } else {
-          copyTemplate(`${tsjs}/routes/apiOnly.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+          copyTemplate(`${tsjs}/routes/apiOnly.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
         }
       }
 
@@ -322,37 +323,37 @@ inquirer
           env.locals.cache = codeSnippets.redisEnvironmentVars
       }
 
-      if (program.view) {
-        // CSS Engine support
-        switch (program.css) {
-          case 'compass':
-            app.locals.modules.compass = 'node-compass'
-            app.locals.uses.push("compass({ mode: 'expanded' })")
-            // pkg.dependencies['node-compass'] = '0.2.3'
-            break
-          case 'less':
-            app.locals.modules.lessMiddleware = 'less-middleware'
-            app.locals.uses.push("lessMiddleware(path.join(__dirname, 'public'))")
-            // pkg.dependencies['less-middleware'] = '~2.2.1'
-            break
-          case 'sass':
-            app.locals.modules.sassMiddleware = 'node-sass-middleware'
-            app.locals.uses.push("sassMiddleware({\n  src: path.join(__dirname, 'public'),\n  dest: path.join(__dirname, 'public'),\n  indentedSyntax: true, // true = .sass and false = .scss\n  sourceMap: true\n})")
-            // pkg.dependencies['node-sass-middleware'] = '0.11.0'
-            break
-          case 'stylus':
-            app.locals.modules.stylus = 'stylus'
-            app.locals.uses.push("stylus.middleware(path.join(__dirname, 'public'))")
-            // pkg.dependencies['stylus'] = '0.54.5'
-            break
-        }
-      }
+      // if (program.view) {
+      //   // CSS Engine support
+      //   switch (program.css) {
+      //     case 'compass':
+      //       app.locals.modules.compass = 'node-compass'
+      //       app.locals.uses.push("compass({ mode: 'expanded' })")
+      //       // pkg.dependencies['node-compass'] = '0.2.3'
+      //       break
+      //     case 'less':
+      //       app.locals.modules.lessMiddleware = 'less-middleware'
+      //       app.locals.uses.push("lessMiddleware(path.join(__dirname, 'public'))")
+      //       // pkg.dependencies['less-middleware'] = '~2.2.1'
+      //       break
+      //     case 'sass':
+      //       app.locals.modules.sassMiddleware = 'node-sass-middleware'
+      //       app.locals.uses.push("sassMiddleware({\n  src: path.join(__dirname, 'public'),\n  dest: path.join(__dirname, 'public'),\n  indentedSyntax: true, // true = .sass and false = .scss\n  sourceMap: true\n})")
+      //       // pkg.dependencies['node-sass-middleware'] = '0.11.0'
+      //       break
+      //     case 'stylus':
+      //       app.locals.modules.stylus = 'stylus'
+      //       app.locals.uses.push("stylus.middleware(path.join(__dirname, 'public'))")
+      //       // pkg.dependencies['stylus'] = '0.54.5'
+      //       break
+      //   }
+      // }
 
       // Index router mount
       // TODO: make routes/index only export
       // app.locals.localModules['* as routes'] = './routes/index'
 
-      app.locals.localModules.helloRouter = './routes/index'
+      app.locals.localModules.helloRouter = './routes/hello'
       app.locals.mounts.push({ path: '/api', code: 'helloRouter' })
 
       // User router mount
@@ -403,13 +404,13 @@ inquirer
       write(path.join(dir, 'package.json'), JSON.stringify(pkg.package, null, 2) + '\n')
       if (hasTs) {
         copyTemplate('ts/tsconfig.json', path.join(dir, 'tsconfig.json'))
-        copyTemplate('ts/tslint.json', path.join(dir, 'tslint.json'))
       } else {
         copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
       }
       mkdir(dir, 'server/bin')
       write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
       write(path.join(dir, '.env'), env.render())
+      copyTemplate(`${tsjs}/eslintrc.js`, path.join(dir, '.eslintrc.js'))
       npmInstall()
       gitInit()
       printInfoLogs()

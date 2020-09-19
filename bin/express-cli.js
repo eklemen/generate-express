@@ -85,26 +85,26 @@ inquirer
       ],
       default: 'none'
     },
-    {
-      when: function (response) {
-        // Only ask for view engine if Javascript is selected
-        return isJs(response.typescript)
-      },
-      type: 'list',
-      name: 'view',
-      message: 'View engine or just API:',
-      choices: [
-        'none - api only',
-        'dust',
-        'ejs',
-        'hbs',
-        'hjs',
-        'pug',
-        'twig',
-        'vash'
-      ],
-      default: 'none'
-    },
+    // {
+    //   when: function (response) {
+    //     // Only ask for view engine if Javascript is selected
+    //     return isJs(response.typescript)
+    //   },
+    //   type: 'list',
+    //   name: 'view',
+    //   message: 'View engine or just API:',
+    //   choices: [
+    //     'none - api only',
+    //     'dust',
+    //     'ejs',
+    //     'hbs',
+    //     'hjs',
+    //     'pug',
+    //     'twig',
+    //     'vash'
+    //   ],
+    //   default: 'none'
+    // },
     {
       type: 'list',
       name: 'cache',
@@ -119,8 +119,9 @@ inquirer
     const {
       dir
     } = program
+    console.log('programObj', program)
     const hasTs = isTs(program.typescript)
-    const hasView = (program.view !== 'none - api only') && !hasTs
+    const hasView = false
     const tsjs = hasTs ? 'ts' : 'js'
 
     if (!exit.exited) {
@@ -263,18 +264,21 @@ inquirer
       // copy route templates
       mkdir(directory, 'server/routes')
       // TODO: rename the javascript route file names to match ts (helloRoute)
-      if (hasTs) {
-        copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
-        copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
-        copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
-      } else {
-        copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
-        if (hasView) {
-          copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
-        } else {
-          copyTemplate(`${tsjs}/routes/apiOnly.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
-        }
-      }
+      copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
+      copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+      copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
+      // if (hasTs) {
+      //   copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
+      //   copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+      //   copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
+      // } else {
+      //   copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
+      //   if (hasView && !hasTs) {
+      //     copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+      //   } else {
+      //     copyTemplate(`${tsjs}/routes/apiOnly.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+      //   }
+      // }
 
       // Database
       www.locals.db = false
@@ -350,15 +354,10 @@ inquirer
       // }
 
       // Index router mount
-      // TODO: make routes/index only export
-      // app.locals.localModules['* as routes'] = './routes/index'
-
-      app.locals.localModules.helloRouter = './routes/hello'
-      app.locals.mounts.push({ path: '/api', code: 'helloRouter' })
-
-      // User router mount
-      app.locals.localModules.usersRouter = './routes/users'
-      app.locals.mounts.push({ path: '/api/users', code: 'usersRouter' })
+      app.locals.localModules['* as routes'] = './routes/index'
+      // Mount routes to app.use()
+      app.locals.mounts.push({ path: '/api', code: 'routes.helloRouter' })
+      app.locals.mounts.push({ path: '/api/users', code: 'routes.usersRouter' })
 
       // Template support
       switch (program.view) {

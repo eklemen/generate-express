@@ -75,7 +75,7 @@ class Pkg {
     this.tsBase = tsBase
     this.jsBase = jsBase
     this.db = program.database
-    this.cache = program.cache
+    this.cache = program.cache !== 'none'
     this.view = program.view
     this.middlewares = middlewares
   }
@@ -154,7 +154,6 @@ class Pkg {
         break
       case 'mongo + mongoose':
         this.base.dependencies.mongoose = '^5.3.16'
-        this.base.dependencies.sequelize = '^6.3.5'
         if (this.hasTs) {
           this.base.devDependencies['@types/mongoose'] = '^5.7.24'
         }

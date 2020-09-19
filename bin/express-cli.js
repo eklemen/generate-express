@@ -119,8 +119,8 @@ inquirer
     const {
       dir
     } = program
-    const hasView = program.view !== 'none - api only'
     const hasTs = isTs(program.typescript)
+    const hasView = (program.view !== 'none - api only') && !hasTs
     const tsjs = hasTs ? 'ts' : 'js'
 
     if (!exit.exited) {
@@ -269,10 +269,10 @@ inquirer
         copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
       } else {
         copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
-        if (hasView && !hasTs) {
-          copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+        if (hasView) {
+          copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
         } else {
-          copyTemplate(`${tsjs}/routes/apiOnly.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+          copyTemplate(`${tsjs}/routes/apiOnly.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
         }
       }
 

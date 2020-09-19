@@ -14,6 +14,7 @@ module.exports = {
     'arrow-parens': 0,
     'comma-dangle': 0,
     'import/prefer-default-export': 0,
+    'no-unused-vars': ['error', { 'argsIgnorePattern': 'next' }],
     'no-use-before-define': 0,
     'space-before-function-paren': 0,
     radix: 0,

@@ -23,9 +23,9 @@ Tired of searching for the right boilerplate repo? Generate your next ExpressJS 
 ```sh
 npx generate-express myCoolProject
 ```
-You can download [npx here](https://www.npmjs.com/package/npx) by running `npm i -g npx`
- 
- **Dependencies are installed automatically**
+* You can download [npx here](https://www.npmjs.com/package/npx) by running `npm i -g npx`
+* [Example of generated project structure](#example-project-structure)
+* **Dependencies are installed automatically**
 
 ### Start your Express.js server
 ```sh

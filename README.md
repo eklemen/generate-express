@@ -2,7 +2,7 @@
 
 ## Generate an Express app from the command line
 
-Tired of searching for the right boilerplate repo? Generate your next project from the command line, and pick the options you need to fit your next project.
+Tired of searching for the right boilerplate repo? Generate your next ExpressJS project from the command line, and pick the options you need to fit your next project.
 
 *Now with Typescript support!*
 
@@ -11,12 +11,10 @@ Tired of searching for the right boilerplate repo? Generate your next project fr
 * Interactive CLI prompts walk you through each option to customize your build (no more inline flags)
 * Choose your own database starter configs (`mongojs`, `mongo + mongoose`, `sequelize`, or `none`)
 * Optional caching configs for Redis
-* Api-only option to exclude views and public directory, or pick from one of the original view engines offered by express-generator
 * File watcher via `nodemon` to transpile code on change 
 
 ### Coming soon
-* Ability to specify SQL dialect if `sequelize` is selected (postgres, mysql, sqlite, etc.)
-* Deprecating less popular view engines
+* Ability to specify SQL dialect for `sequelize` (postgres, mysql, sqlite, etc.)
 * More CLI options for more packages
 * Testing: starting with `jest` will add configs for other frameworks eventually
 * More testing of this framework itself

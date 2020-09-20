@@ -98,7 +98,6 @@ inquirer
     const {
       dir
     } = program
-    console.log('programObj', program)
     const hasTs = isTs(program.typescript)
     const tsjs = hasTs ? 'ts' : 'js'
 
@@ -180,7 +179,6 @@ inquirer
 
       // copy route templates
       mkdir(directory, 'server/routes')
-      // TODO: rename the javascript route file names to match ts (helloRoute)
       copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
       copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
       copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))

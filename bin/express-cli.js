@@ -354,10 +354,10 @@ inquirer
       // }
 
       // Index router mount
-      app.locals.localModules['* as routes'] = './routes/index'
+      app.locals.localModules['* as routes'] = './routes'
       // Mount routes to app.use()
-      app.locals.mounts.push({ path: '/api', code: 'routes.helloRouter' })
-      app.locals.mounts.push({ path: '/api/users', code: 'routes.usersRouter' })
+      app.locals.mounts.push({ path: '/api', code: 'routes.hello' })
+      app.locals.mounts.push({ path: '/api/users', code: 'routes.users' })
 
       // Template support
       switch (program.view) {

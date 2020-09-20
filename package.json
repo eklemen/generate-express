@@ -1,7 +1,7 @@
 {
   "name": "generate-express",
   "description": "Express Generator with es6+/typescript and choice of database.",
-  "version": "3.2.12",
+  "version": "4.0.0",
   "author": "Evan Klemen <ejklemen+exgen@gmail.com>",
   "contributors": [
     "Evan Klemen <ejklemen+exgen@gmail.com>",

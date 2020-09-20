@@ -19,7 +19,8 @@ const jsBase = {
   '@babel/cli': '^7.8.4',
   '@babel/core': '^7.9.0',
   '@babel/node': '^7.8.7',
-  '@babel/preset-env': '^7.9.0'
+  '@babel/preset-env': '^7.9.0',
+  '@babel/plugin-transform-runtime': '^7.11.5'
 }
 
 const middlewares = {

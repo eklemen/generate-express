@@ -50,6 +50,25 @@ $ npm run prod
 $ npm run build
 ```
 
+### Example project structure
+```
+MyCoolApp
+└── server
+    ├── app.js
+    ├── bin
+    │   └── www.js
+    ├── controllers
+    │   └── userController.js
+    ├── models
+    │   ├── User.js
+    │   └── index.js
+    └── routes
+        ├── hello.js
+        ├── index.js
+        └── users.js
+
+```
+
 ## Contributions
 Feel free to raise an issue or create a Pull Request if you see ways that can improve this library.
 

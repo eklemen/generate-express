@@ -19,7 +19,8 @@ const jsBase = {
   '@babel/cli': '^7.8.4',
   '@babel/core': '^7.9.0',
   '@babel/node': '^7.8.7',
-  '@babel/preset-env': '^7.9.0'
+  '@babel/preset-env': '^7.9.0',
+  '@babel/plugin-transform-runtime': '^7.11.5'
 }
 
 const middlewares = {
@@ -31,7 +32,7 @@ const middlewares = {
 }
 
 class Pkg {
-  constructor ({ name, hasTs, hasView, program }) {
+  constructor ({ name, hasTs, program }) {
     // base deps
     this.base = {
       name: kebabCase(name),
@@ -71,11 +72,10 @@ class Pkg {
       }
     }
     this.hasTs = hasTs
-    this.hasView = hasView
     this.tsBase = tsBase
     this.jsBase = jsBase
     this.db = program.database
-    this.cache = program.cache
+    this.cache = program.cache !== 'none'
     this.view = program.view
     this.middlewares = middlewares
   }
@@ -93,7 +93,6 @@ class Pkg {
       .addDb()
       .addCache()
       .addLint()
-      .addView()
     return this
   }
   addTranspiler () {
@@ -154,7 +153,6 @@ class Pkg {
         break
       case 'mongo + mongoose':
         this.base.dependencies.mongoose = '^5.3.16'
-        this.base.dependencies.sequelize = '^6.3.5'
         if (this.hasTs) {
           this.base.devDependencies['@types/mongoose'] = '^5.7.24'
         }
@@ -182,38 +180,6 @@ class Pkg {
       this.base.devDependencies['@typescript-eslint/eslint-plugin'] = '^4.1.1'
       this.base.devDependencies['@typescript-eslint/parser'] = '^4.1.1'
       this.base.devDependencies['eslint-config-airbnb-typescript'] = '^10.0.0'
-    }
-    return this
-  }
-  addView () {
-    if (this.hasView) {
-      this.base.dependencies['http-errors'] = '~1.6.3'
-    }
-    switch (this.view) {
-      case 'dust':
-        this.base.dependencies.adaro = '~1.0.4'
-        break
-      case 'ejs':
-        this.base.dependencies.ejs = '~2.6.1'
-        break
-      case 'hbs':
-        this.base.dependencies.hbs = '~4.0.4'
-        break
-      case 'hjs':
-        this.base.dependencies.hjs = '~0.0.6'
-        break
-      case 'jade':
-        this.base.dependencies.jade = '~1.11.0'
-        break
-      case 'pug':
-        this.base.dependencies.pug = '2.0.0-beta11'
-        break
-      case 'twig':
-        this.base.dependencies.twig = '~0.10.3'
-        break
-      case 'vash':
-        this.base.dependencies.vash = '~0.12.6'
-        break
     }
     return this
   }

@@ -54,7 +54,6 @@ inquirer
       message: 'Include a .gitignore?',
       default: true
     },
-    // TODO: add dynamodb
     {
       when: function (response) {
         return isTs(response.typescript)
@@ -86,26 +85,6 @@ inquirer
       default: 'none'
     },
     {
-      when: function (response) {
-        // Only ask for view engine if Javascript is selected
-        return isJs(response.typescript)
-      },
-      type: 'list',
-      name: 'view',
-      message: 'View engine or just API:',
-      choices: [
-        'none - api only',
-        'dust',
-        'ejs',
-        'hbs',
-        'hjs',
-        'pug',
-        'twig',
-        'vash'
-      ],
-      default: 'none'
-    },
-    {
       type: 'list',
       name: 'cache',
       message: 'Include cache:',
@@ -120,7 +99,6 @@ inquirer
       dir
     } = program
     const hasTs = isTs(program.typescript)
-    const hasView = (program.view !== 'none - api only') && !hasTs
     const tsjs = hasTs ? 'ts' : 'js'
 
     if (!exit.exited) {
@@ -156,7 +134,7 @@ inquirer
 
     function createApplication (name, directory) {
       // Package
-      const pkg = new Pkg({ name, hasTs, hasView, program }).init()
+      const pkg = new Pkg({ name, hasTs, program }).init()
 
       const app = loadTemplate(`${tsjs}/app.${tsjs}`)
       const www = loadTemplate(`${tsjs}/www`)
@@ -199,82 +177,11 @@ inquirer
         mkdir(directory, '.')
       }
 
-      if (hasView) {
-        // Copy view templates
-        mkdir(directory, 'public')
-        mkdir(directory, 'public/javascripts')
-        mkdir(directory, 'public/images')
-        mkdir(directory, 'public/stylesheets')
-        mkdir(directory, 'server/views')
-        switch (program.view) {
-          case 'dust':
-            copyTemplateMulti('views', directory + '/server/views', '*.dust')
-            break
-          case 'ejs':
-            copyTemplateMulti('views', directory + '/server/views', '*.ejs')
-            break
-          case 'hbs':
-            copyTemplateMulti('views', directory + '/server/views', '*.hbs')
-            break
-          case 'hjs':
-            copyTemplateMulti('views', directory + '/server/views', '*.hjs')
-            break
-          case 'jade':
-            copyTemplateMulti('views', directory + '/server/views', '*.jade')
-            break
-          case 'pug':
-            copyTemplateMulti('views', directory + '/server/views', '*.pug')
-            break
-          case 'twig':
-            copyTemplateMulti('views', directory + '/server/views', '*.twig')
-            break
-          case 'vash':
-            copyTemplateMulti('views', directory + '/server/views', '*.vash')
-            break
-          case 'none - api only':
-            break
-        }
-      }
-
-      if (hasView) {
-        // copy css templates
-        switch (program.css) {
-          case 'less':
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.less')
-            break
-          case 'stylus':
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.styl')
-            break
-          case 'compass':
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.scss')
-            break
-          case 'sass':
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.sass')
-            break
-          default:
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.css')
-            break
-        }
-      } else {
-        console.log('Since api only was chosen, no css linking occurred.')
-        console.log('To add css, create /public/stylesheets/style.css')
-      }
-
       // copy route templates
       mkdir(directory, 'server/routes')
-      // TODO: rename the javascript route file names to match ts (helloRoute)
-      if (hasTs) {
-        copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
-        copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
-        copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
-      } else {
-        copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
-        if (hasView) {
-          copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
-        } else {
-          copyTemplate(`${tsjs}/routes/apiOnly.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
-        }
-      }
+      copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
+      copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
+      copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
 
       // Database
       www.locals.db = false
@@ -323,77 +230,11 @@ inquirer
           env.locals.cache = codeSnippets.redisEnvironmentVars
       }
 
-      // if (program.view) {
-      //   // CSS Engine support
-      //   switch (program.css) {
-      //     case 'compass':
-      //       app.locals.modules.compass = 'node-compass'
-      //       app.locals.uses.push("compass({ mode: 'expanded' })")
-      //       // pkg.dependencies['node-compass'] = '0.2.3'
-      //       break
-      //     case 'less':
-      //       app.locals.modules.lessMiddleware = 'less-middleware'
-      //       app.locals.uses.push("lessMiddleware(path.join(__dirname, 'public'))")
-      //       // pkg.dependencies['less-middleware'] = '~2.2.1'
-      //       break
-      //     case 'sass':
-      //       app.locals.modules.sassMiddleware = 'node-sass-middleware'
-      //       app.locals.uses.push("sassMiddleware({\n  src: path.join(__dirname, 'public'),\n  dest: path.join(__dirname, 'public'),\n  indentedSyntax: true, // true = .sass and false = .scss\n  sourceMap: true\n})")
-      //       // pkg.dependencies['node-sass-middleware'] = '0.11.0'
-      //       break
-      //     case 'stylus':
-      //       app.locals.modules.stylus = 'stylus'
-      //       app.locals.uses.push("stylus.middleware(path.join(__dirname, 'public'))")
-      //       // pkg.dependencies['stylus'] = '0.54.5'
-      //       break
-      //   }
-      // }
-
       // Index router mount
-      // TODO: make routes/index only export
-      // app.locals.localModules['* as routes'] = './routes/index'
-
-      app.locals.localModules.helloRouter = './routes/hello'
-      app.locals.mounts.push({ path: '/api', code: 'helloRouter' })
-
-      // User router mount
-      app.locals.localModules.usersRouter = './routes/users'
-      app.locals.mounts.push({ path: '/api/users', code: 'usersRouter' })
-
-      // Template support
-      switch (program.view) {
-        case 'dust':
-          app.locals.modules.adaro = 'adaro'
-          app.locals.view = {
-            engine: 'dust',
-            render: 'adaro.dust()'
-          }
-          break
-        case 'ejs':
-          app.locals.view = { engine: 'ejs' }
-          break
-        case 'hbs':
-          app.locals.view = { engine: 'hbs' }
-          break
-        case 'hjs':
-          app.locals.view = { engine: 'hjs' }
-          break
-        case 'jade':
-          app.locals.view = { engine: 'jade' }
-          break
-        case 'pug':
-          app.locals.view = { engine: 'pug' }
-          break
-        case 'twig':
-          app.locals.view = { engine: 'twig' }
-          break
-        case 'vash':
-          app.locals.view = { engine: 'vash' }
-          break
-        default:
-          app.locals.view = false
-          break
-      }
+      app.locals.localModules['* as routes'] = './routes'
+      // Mount routes to app.use()
+      app.locals.mounts.push({ path: '/api', code: 'routes.hello' })
+      app.locals.mounts.push({ path: '/api/users', code: 'routes.users' })
 
       if (program.gitignore) {
         copyTemplate(`${tsjs}/gitignore`, path.join(dir, '.gitignore'))

@@ -11,6 +11,8 @@ var MODE_0755 = parseInt('0755', 8)
 var codeSnippets = require('../utils/code-snippets')
 var Pkg = require('../utils/Package')
 var tools = require('../utils/tools')
+var CoreTemplate = require('../utils/CoreTemplate')
+var AppTemplate = require('../utils/AppTemplate')
 
 var _exit = process.exit
 
@@ -110,42 +112,11 @@ inquirer
       // Package
       const pkg = new Pkg({ name, hasTs, program }).init()
 
-      const app = tools.loadTemplate(`${tsjs}/app.${tsjs}`)
-      const www = tools.loadTemplate(`${tsjs}/www`)
+      const app = new AppTemplate(`${tsjs}/app.${tsjs}`)
+      const www = new CoreTemplate(`${tsjs}/www`)
       const env = tools.loadTemplate(`${tsjs}/.env`)
 
-      // App name
-      www.locals.name = name
-
-      // App modules
-      app.locals.localModules = Object.create(null)
-      app.locals.modules = Object.create(null)
-      app.locals.mounts = []
-      app.locals.uses = []
-
-      // Request logger
-      app.locals.modules.logger = 'morgan'
-      app.locals.uses.push("logger('dev')")
-
-      // Body parsers
-      app.locals.uses.push('express.json()')
-      app.locals.uses.push('express.urlencoded({ extended: false })')
-
-      // Cookie parser
-      app.locals.modules.cookieParser = 'cookie-parser'
-      app.locals.uses.push('cookieParser()')
-
-      // Helmet
-      app.locals.modules.helmet = 'helmet'
-      app.locals.uses.push('helmet()')
-
-      // CORS
-      app.locals.modules.cors = 'cors'
-      app.locals.uses.push('cors()')
-
-      // Compression middleware
-      app.locals.modules.compression = 'compression'
-      app.locals.uses.push('compression()')
+      app.addMiddlewares()
 
       if (directory !== '.') {
         tools.mkdir(directory, '.')
@@ -158,22 +129,20 @@ inquirer
       tools.copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
 
       // Database
-      www.locals.db = false
-      app.locals.db = false
       env.locals.db = false
       tools.mkdir(dir, 'server/controllers')
       switch (program.database) {
         case 'mongojs':
-          app.locals.modules.mongojs = 'mongojs'
-          app.locals.db = codeSnippets.mongoJsCode
+          app.addModule('mongojs', 'mongojs')
+          app.db = codeSnippets.mongoJsCode
           tools.copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'sequelize':
           // TODO: prompt for which flavor of SQL (mysql/pg/maria/sqlite)
           if (hasTs) {
-            www.locals.db = codeSnippets.sequelizeCodeTS
+            www.db = codeSnippets.sequelizeCodeTS
           } else {
-            www.locals.db = codeSnippets.sequelizeCode
+            www.db = codeSnippets.sequelizeCode
           }
           env.locals.db = codeSnippets.sequelizeEnvironmentVars
 
@@ -184,8 +153,8 @@ inquirer
           tools.copyTemplate(`${tsjs}/controllers/userController.sql.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'mongo + mongoose':
-          app.locals.modules.mongoose = 'mongoose'
-          app.locals.db = codeSnippets.mongoMongooseCode
+          app.addModule('mongoose', 'mongoose')
+          app.db = codeSnippets.mongoMongooseCode
           tools.mkdir(dir, 'server/models')
           tools.copyTemplateMulti(`${tsjs}/models/mongoose`, `${dir}/server/models`, `*.${tsjs}`)
           tools.copyTemplate(`${tsjs}/controllers/userController.mongo.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
@@ -195,20 +164,19 @@ inquirer
       }
 
       // Caching
-      app.locals.cache = false
       env.locals.cache = false
       switch (program.cache) {
         case 'redis':
-          app.locals.modules.redis = 'redis'
-          app.locals.cache = codeSnippets.redisCode
+          app.addModule('redis', 'redis')
+          app.cache = codeSnippets.redisCode
           env.locals.cache = codeSnippets.redisEnvironmentVars
       }
 
       // Index router mount
-      app.locals.localModules['* as routes'] = './routes'
+      app.addLocalModule('* as routes', './routes')
       // Mount routes to app.use()
-      app.locals.mounts.push({ path: '/api', code: 'routes.hello' })
-      app.locals.mounts.push({ path: '/api/users', code: 'routes.users' })
+      app.addUseRoute('/api', 'routes.hello')
+      app.addUseRoute('/api/users', 'routes.users')
 
       if (program.gitignore) {
         tools.copyTemplate(`${tsjs}/gitignore`, path.join(dir, '.gitignore'))

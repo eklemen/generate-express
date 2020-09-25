@@ -114,7 +114,9 @@ inquirer
       const pkg = new Pkg({ name, hasTs, program }).init()
 
       const scaffold = new Scaffold({ hasTs, dir, directory, tsjs }).init()
-      scaffold.createRouteFiles()
+      scaffold
+        .createRouteFiles()
+        .createGitIgnore(program.gitignore)
       const app = new AppTemplate(`${tsjs}/app.${tsjs}`)
       const www = new CoreTemplate(`${tsjs}/www`)
       const env = new CoreTemplate(`${tsjs}/.env`)
@@ -127,7 +129,7 @@ inquirer
       switch (program.database) {
         case 'mongojs':
           app.addDb(program.database)
-          tools.copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
+          scaffold.createDefaultControllerFiles()
           break
         case 'sequelize':
           // TODO: prompt for which flavor of SQL (mysql/pg/maria/sqlite)
@@ -135,21 +137,14 @@ inquirer
             ? www.locals.db = codeSnippets.sequelizeCodeTS
             : www.locals.db = codeSnippets.sequelizeCode
           env.locals.db = codeSnippets.sequelizeEnvironmentVars
-
-          tools.mkdir(dir, 'server/config')
-          tools.copyTemplateMulti(`${tsjs}/models/sequelize/config`, `${dir}/server/config`, `*.${tsjs}`)
-          tools.mkdir(dir, 'server/models')
-          tools.copyTemplateMulti(`${tsjs}/models/sequelize`, `${dir}/server/models`, `*.${tsjs}`)
-          tools.copyTemplate(`${tsjs}/controllers/userController.sql.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
+          scaffold.createSequelizeFiles()
           break
         case 'mongo + mongoose':
           app.addDb('mongoose')
-          tools.mkdir(dir, 'server/models')
-          tools.copyTemplateMulti(`${tsjs}/models/mongoose`, `${dir}/server/models`, `*.${tsjs}`)
-          tools.copyTemplate(`${tsjs}/controllers/userController.mongo.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
+          scaffold.createMongooseFiles()
           break
         default:
-          tools.copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
+          scaffold.createDefaultControllerFiles()
       }
 
       // Caching
@@ -157,10 +152,6 @@ inquirer
         case 'redis':
           app.addCache(program.cache)
           env.locals.cache = codeSnippets.redisEnvironmentVars
-      }
-
-      if (program.gitignore) {
-        tools.copyTemplate(`${tsjs}/gitignore`, path.join(dir, '.gitignore'))
       }
 
       // Put it all together: write files based on configs

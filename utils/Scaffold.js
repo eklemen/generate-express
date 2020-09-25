@@ -12,6 +12,7 @@ class Scaffold {
     if (this.directory !== '.') {
       tools.mkdir(this.directory, '.')
     }
+    return this
   }
   createCoreFiles (packagejson) {
     // write files
@@ -23,6 +24,7 @@ class Scaffold {
     tools.mkdir(this.dir, 'server/bin')
     tools.copyTemplate(`${this.tsjs}/eslintrc.js`, path.join(this.dir, '.eslintrc.js'))
     tools.write(path.join(this.dir, 'package.json'), JSON.stringify(packagejson, null, 2) + '\n')
+    return this
   }
   createRouteFiles () {
     // copy route templates
@@ -34,11 +36,13 @@ class Scaffold {
   }
   createDefaultControllerFiles () {
     tools.copyTemplate(`${this.tsjs}/controllers/userController.default.${this.tsjs}`, path.join(this.dir, `/server/controllers/userController.${this.tsjs}`))
+    return this
   }
   createMongooseFiles () {
     tools.mkdir(this.dir, 'server/models')
     tools.copyTemplateMulti(`${this.tsjs}/models/mongoose`, `${this.dir}/server/models`, `*.${this.tsjs}`)
     tools.copyTemplate(`${this.tsjs}/controllers/userController.mongo.${this.tsjs}`, path.join(this.dir, `/server/controllers/userController.${this.tsjs}`))
+    return this
   }
   createSequelizeFiles () {
     tools.mkdir(this.dir, 'server/config')
@@ -46,11 +50,13 @@ class Scaffold {
     tools.mkdir(this.dir, 'server/models')
     tools.copyTemplateMulti(`${this.tsjs}/models/sequelize`, `${this.dir}/server/models`, `*.${this.tsjs}`)
     tools.copyTemplate(`${this.tsjs}/controllers/userController.sql.${this.tsjs}`, path.join(this.dir, `/server/controllers/userController.${this.tsjs}`))
+    return this
   }
   createGitIgnore (shouldCreate) {
     if (shouldCreate) {
       tools.copyTemplate(`${this.tsjs}/gitignore`, path.join(this.dir, '.gitignore'))
     }
+    return this
   }
 }
 

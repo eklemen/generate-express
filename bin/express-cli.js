@@ -113,8 +113,8 @@ inquirer
       // Package
       const pkg = new Pkg({ name, hasTs, program }).init()
 
-      const scaffold = new Scaffold({ hasTs, dir, directory, tsjs }).init()
-      scaffold
+      const scaffold = new Scaffold({ hasTs, dir, directory, tsjs })
+        .init()
         .createRouteFiles()
         .createGitIgnore(program.gitignore)
       const app = new AppTemplate(`${tsjs}/app.${tsjs}`)
@@ -160,7 +160,7 @@ inquirer
       tools.write(path.join(dir, `server/app.${tsjs}`), app.render())
       tools.write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
       tools.write(path.join(dir, '.env'), env.render())
-      npmInstall()
+      // npmInstall()
       gitInit()
       printInfoLogs()
     }

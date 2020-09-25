@@ -160,7 +160,7 @@ inquirer
       tools.write(path.join(dir, `server/app.${tsjs}`), app.render())
       tools.write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
       tools.write(path.join(dir, '.env'), env.render())
-      // npmInstall()
+      npmInstall()
       gitInit()
       printInfoLogs()
     }

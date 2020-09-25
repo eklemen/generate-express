@@ -117,6 +117,7 @@ inquirer
       const env = tools.loadTemplate(`${tsjs}/.env`)
 
       app.addMiddlewares()
+      app.addRoutes()
 
       if (directory !== '.') {
         tools.mkdir(directory, '.')
@@ -167,16 +168,9 @@ inquirer
       env.locals.cache = false
       switch (program.cache) {
         case 'redis':
-          app.addModule('redis', 'redis')
-          app.locals.cache = codeSnippets.redisCode
+          app.addCache(program.cache)
           env.locals.cache = codeSnippets.redisEnvironmentVars
       }
-
-      // Index router mount
-      app.addLocalModule('* as routes', './routes')
-      // Mount routes to app.use()
-      app.addUseRoute('/api', 'routes.hello')
-      app.addUseRoute('/api/users', 'routes.users')
 
       if (program.gitignore) {
         tools.copyTemplate(`${tsjs}/gitignore`, path.join(dir, '.gitignore'))

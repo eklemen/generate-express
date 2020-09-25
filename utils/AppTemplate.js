@@ -1,4 +1,5 @@
 const CoreTemplate = require('./CoreTemplate')
+const codeSnippets = require('./code-snippets')
 
 class AppTemplate extends CoreTemplate {
   constructor (name) {
@@ -53,6 +54,17 @@ class AppTemplate extends CoreTemplate {
       }
       appUse.forEach(u => super.addAppUse(u))
     })
+  }
+  addRoutes () {
+    // Index router mount
+    super.addLocalModule('* as routes', './routes')
+    // Mount routes to app.use()
+    super.addUseRoute('/api', 'routes.hello')
+    super.addUseRoute('/api/users', 'routes.users')
+  }
+  addCache (cache) {
+    super.addModule(cache, cache)
+    super.locals.cache = codeSnippets.redisCode
   }
 }
 

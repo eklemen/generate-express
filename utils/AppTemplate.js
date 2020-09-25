@@ -62,9 +62,20 @@ class AppTemplate extends CoreTemplate {
     super.addUseRoute('/api', 'routes.hello')
     super.addUseRoute('/api/users', 'routes.users')
   }
+  addDb (db) {
+    const dbSnippets = {
+      mongojs: codeSnippets.mongoJsCode,
+      mongoose: codeSnippets.mongoMongooseCode
+    }
+    super.addModule(db, db)
+    super.locals.db = dbSnippets[db]
+  }
   addCache (cache) {
+    const cacheSnippets = {
+      redis: codeSnippets.redisCode
+    }
     super.addModule(cache, cache)
-    super.locals.cache = codeSnippets.redisCode
+    super.locals.cache = cacheSnippets[cache]
   }
 }
 

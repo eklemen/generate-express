@@ -134,8 +134,7 @@ inquirer
       tools.mkdir(dir, 'server/controllers')
       switch (program.database) {
         case 'mongojs':
-          app.addModule('mongojs', 'mongojs')
-          app.locals.db = codeSnippets.mongoJsCode
+          app.addDb(program.database)
           tools.copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'sequelize':
@@ -154,8 +153,7 @@ inquirer
           tools.copyTemplate(`${tsjs}/controllers/userController.sql.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'mongo + mongoose':
-          app.addModule('mongoose', 'mongoose')
-          app.locals.db = codeSnippets.mongoMongooseCode
+          app.addDb('mongoose')
           tools.mkdir(dir, 'server/models')
           tools.copyTemplateMulti(`${tsjs}/models/mongoose`, `${dir}/server/models`, `*.${tsjs}`)
           tools.copyTemplate(`${tsjs}/controllers/userController.mongo.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))

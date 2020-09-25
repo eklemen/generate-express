@@ -1,0 +1,39 @@
+const path = require('path')
+const tools = require('./tools')
+
+class Scaffold {
+  constructor ({ hasTs, dir, directory, tsjs }) {
+    this.hasTs = hasTs
+    this.dir = dir
+    this.directory = directory
+    this.tsjs = tsjs
+  }
+  init () {
+    if (this.directory !== '.') {
+      tools.mkdir(this.directory, '.')
+    }
+    return this
+  }
+  createCoreFiles (packagejson) {
+    // write files
+    if (this.hasTs) {
+      tools.copyTemplate('ts/tsconfig.json', path.join(this.dir, 'tsconfig.json'))
+    } else {
+      tools.copyTemplate('js/babelrc', path.join(this.dir, '.babelrc'))
+    }
+    tools.mkdir(this.dir, 'server/bin')
+    tools.copyTemplate(`${this.tsjs}/eslintrc.js`, path.join(this.dir, '.eslintrc.js'))
+    tools.write(path.join(this.dir, 'package.json'), JSON.stringify(packagejson, null, 2) + '\n')
+    return this
+  }
+  createRouteFiles () {
+    // copy route templates
+    tools.mkdir(this.directory, 'server/routes')
+    tools.copyTemplate(`${this.tsjs}/routes/users.${this.tsjs}`, path.join(this.dir, `/server/routes/users.${this.tsjs}`))
+    tools.copyTemplate(`${this.tsjs}/routes/index.${this.tsjs}`, path.join(this.dir, `/server/routes/index.${this.tsjs}`))
+    tools.copyTemplate(`${this.tsjs}/routes/hello.${this.tsjs}`, path.join(this.dir, `/server/routes/hello.${this.tsjs}`))
+    return this
+  }
+}
+
+module.exports = Scaffold

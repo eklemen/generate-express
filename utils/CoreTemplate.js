@@ -4,7 +4,6 @@ var path = require('path')
 var util = require('util')
 
 class CoreTemplate {
-
   constructor (name) {
     this.locals = {
       name: name,

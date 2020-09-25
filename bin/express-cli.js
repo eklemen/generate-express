@@ -13,6 +13,7 @@ var Pkg = require('../utils/Package')
 var tools = require('../utils/tools')
 var CoreTemplate = require('../utils/CoreTemplate')
 var AppTemplate = require('../utils/AppTemplate')
+var Scaffold = require('../utils/Scaffold')
 
 var _exit = process.exit
 
@@ -112,25 +113,16 @@ inquirer
       // Package
       const pkg = new Pkg({ name, hasTs, program }).init()
 
+      const scaffold = new Scaffold({ hasTs, dir, directory, tsjs }).init()
+      scaffold.createRouteFiles()
       const app = new AppTemplate(`${tsjs}/app.${tsjs}`)
       const www = new CoreTemplate(`${tsjs}/www`)
-      const env = tools.loadTemplate(`${tsjs}/.env`)
+      const env = new CoreTemplate(`${tsjs}/.env`)
 
       app.addMiddlewares()
       app.addRoutes()
 
-      if (directory !== '.') {
-        tools.mkdir(directory, '.')
-      }
-
-      // copy route templates
-      tools.mkdir(directory, 'server/routes')
-      tools.copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
-      tools.copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
-      tools.copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
-
       // Database
-      env.locals.db = false
       tools.mkdir(dir, 'server/controllers')
       switch (program.database) {
         case 'mongojs':
@@ -139,11 +131,9 @@ inquirer
           break
         case 'sequelize':
           // TODO: prompt for which flavor of SQL (mysql/pg/maria/sqlite)
-          if (hasTs) {
-            www.locals.db = codeSnippets.sequelizeCodeTS
-          } else {
-            www.locals.db = codeSnippets.sequelizeCode
-          }
+          www.locals.db = hasTs
+            ? www.locals.db = codeSnippets.sequelizeCodeTS
+            : www.locals.db = codeSnippets.sequelizeCode
           env.locals.db = codeSnippets.sequelizeEnvironmentVars
 
           tools.mkdir(dir, 'server/config')
@@ -163,7 +153,6 @@ inquirer
       }
 
       // Caching
-      env.locals.cache = false
       switch (program.cache) {
         case 'redis':
           app.addCache(program.cache)
@@ -174,18 +163,12 @@ inquirer
         tools.copyTemplate(`${tsjs}/gitignore`, path.join(dir, '.gitignore'))
       }
 
-      // write files
+      // Put it all together: write files based on configs
+      scaffold.createCoreFiles(pkg.package)
+      // build template.ejs files for app, www, env
       tools.write(path.join(dir, `server/app.${tsjs}`), app.render())
-      tools.write(path.join(dir, 'package.json'), JSON.stringify(pkg.package, null, 2) + '\n')
-      if (hasTs) {
-        tools.copyTemplate('ts/tsconfig.json', path.join(dir, 'tsconfig.json'))
-      } else {
-        tools.copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
-      }
-      tools.mkdir(dir, 'server/bin')
       tools.write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
       tools.write(path.join(dir, '.env'), env.render())
-      tools.copyTemplate(`${tsjs}/eslintrc.js`, path.join(dir, '.eslintrc.js'))
       npmInstall()
       gitInit()
       printInfoLogs()

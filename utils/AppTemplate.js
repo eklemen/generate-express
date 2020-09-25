@@ -54,13 +54,6 @@ class AppTemplate extends CoreTemplate {
       appUse.forEach(u => super.addAppUse(u))
     })
   }
-  // addDb (db) {
-  //   if (db === 'mongo + mongoose') {
-  //     super.addModule('mongoose', 'mongoose')
-  //   } else {
-  //     super.addModule(db, db)
-  //   }
-  // }
 }
 
 module.exports = AppTemplate

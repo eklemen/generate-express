@@ -134,7 +134,7 @@ inquirer
       switch (program.database) {
         case 'mongojs':
           app.addModule('mongojs', 'mongojs')
-          app.db = codeSnippets.mongoJsCode
+          app.locals.db = codeSnippets.mongoJsCode
           tools.copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
           break
         case 'sequelize':
@@ -154,7 +154,7 @@ inquirer
           break
         case 'mongo + mongoose':
           app.addModule('mongoose', 'mongoose')
-          app.db = codeSnippets.mongoMongooseCode
+          app.locals.db = codeSnippets.mongoMongooseCode
           tools.mkdir(dir, 'server/models')
           tools.copyTemplateMulti(`${tsjs}/models/mongoose`, `${dir}/server/models`, `*.${tsjs}`)
           tools.copyTemplate(`${tsjs}/controllers/userController.mongo.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
@@ -168,7 +168,7 @@ inquirer
       switch (program.cache) {
         case 'redis':
           app.addModule('redis', 'redis')
-          app.cache = codeSnippets.redisCode
+          app.locals.cache = codeSnippets.redisCode
           env.locals.cache = codeSnippets.redisEnvironmentVars
       }
 

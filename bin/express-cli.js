@@ -140,9 +140,9 @@ inquirer
         case 'sequelize':
           // TODO: prompt for which flavor of SQL (mysql/pg/maria/sqlite)
           if (hasTs) {
-            www.db = codeSnippets.sequelizeCodeTS
+            www.locals.db = codeSnippets.sequelizeCodeTS
           } else {
-            www.db = codeSnippets.sequelizeCode
+            www.locals.db = codeSnippets.sequelizeCode
           }
           env.locals.db = codeSnippets.sequelizeEnvironmentVars
 

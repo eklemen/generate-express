@@ -68,14 +68,14 @@ class AppTemplate extends CoreTemplate {
       mongoose: codeSnippets.mongoMongooseCode
     }
     super.addModule(db, db)
-    super.locals.db = dbSnippets[db]
+    this.locals.db = dbSnippets[db]
   }
   addCache (cache) {
     const cacheSnippets = {
       redis: codeSnippets.redisCode
     }
     super.addModule(cache, cache)
-    super.locals.cache = cacheSnippets[cache]
+    this.locals.cache = cacheSnippets[cache]
   }
 }
 

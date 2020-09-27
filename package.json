@@ -58,7 +58,7 @@
     "LICENSE",
     "bin/",
     "templates/",
-    "js/"
+    "utils/"
   ],
   "scripts": {
     "lint": "eslint .",

@@ -1,22 +1,19 @@
 #!/usr/bin/env node
 
-var ejs = require('ejs')
-var fs = require('fs')
-var minimatch = require('minimatch')
-var mkdirp = require('mkdirp')
 var path = require('path')
 var readline = require('readline')
-var util = require('util')
 var inquirer = require('inquirer')
 var chalk = require('chalk')
 var rimraf = require('rimraf')
 var execSync = require('child_process').execSync
 
-var MODE_0666 = parseInt('0666', 8)
 var MODE_0755 = parseInt('0755', 8)
-var TEMPLATE_DIR = path.join(__dirname, '..', 'templates')
-var codeSnippets = require('../js/code-snippets')
-var Pkg = require('../js/Package')
+var codeSnippets = require('../utils/code-snippets')
+var Pkg = require('../utils/Package')
+var tools = require('../utils/tools')
+var CoreTemplate = require('../utils/CoreTemplate')
+var AppTemplate = require('../utils/AppTemplate')
+var Scaffold = require('../utils/Scaffold')
 
 var _exit = process.exit
 
@@ -106,26 +103,6 @@ inquirer
     }
 
     /**
-     * Copy file from template directory.
-     */
-
-    function copyTemplate (from, to) {
-      write(to, fs.readFileSync(path.join(TEMPLATE_DIR, from), 'utf-8'))
-    }
-
-    /**
-     * Copy multiple files from template directory.
-     */
-
-    function copyTemplateMulti (fromDir, toDir, nameGlob) {
-      fs.readdirSync(path.join(TEMPLATE_DIR, fromDir))
-        .filter(minimatch.filter(nameGlob, { matchBase: true }))
-        .forEach(function (name) {
-          copyTemplate(path.join(fromDir, name), path.join(toDir, name))
-        })
-    }
-
-    /**
      * Create application at the given directory.
      *
      * @param {string} name
@@ -136,122 +113,53 @@ inquirer
       // Package
       const pkg = new Pkg({ name, hasTs, program }).init()
 
-      const app = loadTemplate(`${tsjs}/app.${tsjs}`)
-      const www = loadTemplate(`${tsjs}/www`)
-      const env = loadTemplate(`${tsjs}/.env`)
+      const scaffold = new Scaffold({ hasTs, dir, directory, tsjs })
+        .init()
+        .createRouteFiles()
+        .createGitIgnore(program.gitignore)
+      const app = new AppTemplate(`${tsjs}/app.${tsjs}`)
+      const www = new CoreTemplate(`${tsjs}/www`)
+      const env = new CoreTemplate(`${tsjs}/.env`)
 
-      // App name
-      www.locals.name = name
-
-      // App modules
-      app.locals.localModules = Object.create(null)
-      app.locals.modules = Object.create(null)
-      app.locals.mounts = []
-      app.locals.uses = []
-
-      // Request logger
-      app.locals.modules.logger = 'morgan'
-      app.locals.uses.push("logger('dev')")
-
-      // Body parsers
-      app.locals.uses.push('express.json()')
-      app.locals.uses.push('express.urlencoded({ extended: false })')
-
-      // Cookie parser
-      app.locals.modules.cookieParser = 'cookie-parser'
-      app.locals.uses.push('cookieParser()')
-
-      // Helmet
-      app.locals.modules.helmet = 'helmet'
-      app.locals.uses.push('helmet()')
-
-      // CORS
-      app.locals.modules.cors = 'cors'
-      app.locals.uses.push('cors()')
-
-      // Compression middleware
-      app.locals.modules.compression = 'compression'
-      app.locals.uses.push('compression()')
-
-      if (directory !== '.') {
-        mkdir(directory, '.')
-      }
-
-      // copy route templates
-      mkdir(directory, 'server/routes')
-      copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
-      copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
-      copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/hello.${tsjs}`))
+      app.addMiddlewares()
+      app.addRoutes()
 
       // Database
-      www.locals.db = false
-      app.locals.db = false
-      env.locals.db = false
-      mkdir(dir, 'server/controllers')
+      tools.mkdir(dir, 'server/controllers')
       switch (program.database) {
         case 'mongojs':
-          app.locals.modules.mongojs = 'mongojs'
-          app.locals.db = codeSnippets.mongoJsCode
-          copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
+          app.addDb(program.database)
+          scaffold.createDefaultControllerFiles()
           break
         case 'sequelize':
           // TODO: prompt for which flavor of SQL (mysql/pg/maria/sqlite)
-          if (hasTs) {
-            www.locals.db = codeSnippets.sequelizeCodeTS
-          } else {
-            www.locals.db = codeSnippets.sequelizeCode
-          }
+          www.locals.db = hasTs
+            ? www.locals.db = codeSnippets.sequelizeCodeTS
+            : www.locals.db = codeSnippets.sequelizeCode
           env.locals.db = codeSnippets.sequelizeEnvironmentVars
-
-          mkdir(dir, 'server/config')
-          copyTemplateMulti(`${tsjs}/models/sequelize/config`, `${dir}/server/config`, `*.${tsjs}`)
-          mkdir(dir, 'server/models')
-          copyTemplateMulti(`${tsjs}/models/sequelize`, `${dir}/server/models`, `*.${tsjs}`)
-          copyTemplate(`${tsjs}/controllers/userController.sql.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
+          scaffold.createSequelizeFiles()
           break
         case 'mongo + mongoose':
-          app.locals.modules.mongoose = 'mongoose'
-          app.locals.db = codeSnippets.mongoMongooseCode
-          mkdir(dir, 'server/models')
-          copyTemplateMulti(`${tsjs}/models/mongoose`, `${dir}/server/models`, `*.${tsjs}`)
-          copyTemplate(`${tsjs}/controllers/userController.mongo.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
+          app.addDb('mongoose')
+          scaffold.createMongooseFiles()
           break
         default:
-          copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
+          scaffold.createDefaultControllerFiles()
       }
 
       // Caching
-      app.locals.cache = false
-      env.locals.cache = false
       switch (program.cache) {
         case 'redis':
-          app.locals.modules.redis = 'redis'
-          app.locals.cache = codeSnippets.redisCode
+          app.addCache(program.cache)
           env.locals.cache = codeSnippets.redisEnvironmentVars
       }
 
-      // Index router mount
-      app.locals.localModules['* as routes'] = './routes'
-      // Mount routes to app.use()
-      app.locals.mounts.push({ path: '/api', code: 'routes.hello' })
-      app.locals.mounts.push({ path: '/api/users', code: 'routes.users' })
-
-      if (program.gitignore) {
-        copyTemplate(`${tsjs}/gitignore`, path.join(dir, '.gitignore'))
-      }
-
-      // write files
-      write(path.join(dir, `server/app.${tsjs}`), app.render())
-      write(path.join(dir, 'package.json'), JSON.stringify(pkg.package, null, 2) + '\n')
-      if (hasTs) {
-        copyTemplate('ts/tsconfig.json', path.join(dir, 'tsconfig.json'))
-      } else {
-        copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
-      }
-      mkdir(dir, 'server/bin')
-      write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
-      write(path.join(dir, '.env'), env.render())
-      copyTemplate(`${tsjs}/eslintrc.js`, path.join(dir, '.eslintrc.js'))
+      // Put it all together: write files based on configs
+      scaffold.createCoreFiles(pkg.package)
+      // build template.ejs files for app, www, env
+      tools.write(path.join(dir, `server/app.${tsjs}`), app.render())
+      tools.write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
+      tools.write(path.join(dir, '.env'), env.render())
       npmInstall()
       gitInit()
       printInfoLogs()
@@ -302,21 +210,6 @@ inquirer
     }
 
     /**
-     * Check if the given directory `dir` is empty.
-     *
-     * @param {String} dir
-     * @param {Function} fn
-     */
-
-    function emptyDirectory (directory, fn) {
-      console.log(directory)
-      fs.readdir(directory, function (err, files) {
-        if (err && err.code !== 'ENOENT') throw err
-        fn(!files || !files.length)
-      })
-    }
-
-    /**
      * Graceful exit for async STDIO
      */
 
@@ -340,26 +233,6 @@ inquirer
       })
 
       done()
-    }
-
-    /**
-     * Load template file.
-     */
-
-    function loadTemplate (name) {
-      const contents = fs.readFileSync(path.join(__dirname, '..', 'templates', (name + '.ejs')), 'utf-8')
-      const locals = Object.create(null)
-
-      function render () {
-        return ejs.render(contents, locals, {
-          escape: util.inspect
-        })
-      }
-
-      return {
-        locals: locals,
-        render: render
-      }
     }
 
     /**
@@ -387,7 +260,7 @@ inquirer
       }
 
       // Generate application
-      emptyDirectory(destinationPath, function (empty) {
+      tools.emptyDirectory(destinationPath, function (empty) {
         if (empty || program.force) {
           createApplication(appName, destinationPath)
         } else {
@@ -407,30 +280,6 @@ inquirer
       })
     }
 
-    /**
-     * Make the given dir relative to base.
-     *
-     * @param {string} base
-     * @param {string} dir
-     */
-
-    function mkdir (base, directory) {
-      const loc = path.join(base, directory)
-      console.log(chalk.cyan('   create : ' + chalk.green(loc + path.sep)))
-      mkdirp.sync(loc, MODE_0755)
-    }
-
-    /**
-     * echo str > file.
-     *
-     * @param {String} file
-     * @param {String} str
-     */
-
-    function write (file, str, mode) {
-      fs.writeFileSync(file, str, { mode: mode || MODE_0666 })
-      console.log(chalk.cyan('   create : ' + chalk.green(file)))
-    }
     process.exit = exit
   })
   .catch(error => {

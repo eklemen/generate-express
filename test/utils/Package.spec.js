@@ -16,7 +16,7 @@ describe('Package Class (package.json)', () => {
       program
     })
   })
-  describe('Class default values', () => {
+  describe('Class default values JS', () => {
     test('base', (done) => {
       expect(pkg.base).toEqual({
         name: 'test-app',
@@ -68,7 +68,7 @@ describe('Package Class (package.json)', () => {
     })
   })
 
-  describe('class methods', () => {
+  describe('class methods Package', () => {
     beforeEach(() => {
       jest.mock('../../utils/Package')
       pkg = new Package({
@@ -76,9 +76,11 @@ describe('Package Class (package.json)', () => {
         hasTs: false,
         program
       })
+      Package.mockClear()
     })
-    test('init()', (done) => {
-      Package.prototype.addTranspiler = jest.fn().mockReturnValue(pkg)
+    test('.init()', (done) => {
+      const mockAddTranspiler = jest.fn().mockReturnThis()
+      Package.prototype.addTranspiler = mockAddTranspiler
       Package.prototype.addLanguageDevDeps = jest.fn().mockReturnValue(pkg)
       Package.prototype.addMiddlewares = jest.fn().mockReturnValue(pkg)
       Package.prototype.addDb = jest.fn().mockReturnValue(pkg)
@@ -91,7 +93,12 @@ describe('Package Class (package.json)', () => {
       expect(pkg.addDb).toHaveBeenCalled()
       expect(pkg.addCache).toHaveBeenCalled()
       expect(pkg.addLint).toHaveBeenCalled()
+      mockAddTranspiler.mockRestore()
       done()
+    })
+    test('.addTranspiler() with JS', () => {
+      pkg.addTranspiler()
+      expect(pkg.base.scripts.transpile).toEqual('babel ./server --out-dir dist --copy-files')
     })
   })
 })

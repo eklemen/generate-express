@@ -1,3 +1,11 @@
+var ejs = require('ejs')
+const fs = require('fs')
+const path = require('path')
+const util = require('util')
+jest.mock('fs')
+jest.mock('path')
+jest.mock('ejs')
+jest.mock('util')
 const CoreTemplate = require('../../utils/CoreTemplate')
 
 describe('CoreTemplate class', () => {
@@ -50,6 +58,13 @@ describe('CoreTemplate class', () => {
       expect(coreTemplate.locals.uses[0]).toEqual('cors()')
       coreTemplate.addAppUse('express.urlencoded({ extended: false })')
       expect(coreTemplate.locals.uses[1]).toEqual('express.urlencoded({ extended: false })')
+    })
+    test('render()', () => {
+      path.join.mockReturnValue(`../templates/${coreTemplate.locals.name}.ejs`)
+      fs.readFileSync.mockReturnValue('Some contents')
+      coreTemplate.render()
+      expect(fs.readFileSync).toHaveBeenCalledWith('../templates/www.ejs', 'utf-8')
+      expect(ejs.render).toHaveBeenCalledWith('Some contents', coreTemplate.locals, { escape: util.inspect })
     })
   })
 })

@@ -9,12 +9,13 @@ describe('Package Class (package.json)', () => {
     database: 'none',
     cache: 'none'
   }
+  let initParams = {
+    name: 'test-app',
+    hasTs: false,
+    program
+  }
   beforeEach(() => {
-    pkg = new Package({
-      name: 'test-app',
-      hasTs: false,
-      program
-    })
+    pkg = new Package(initParams)
   })
   describe('Class default values JS', () => {
     test('base', (done) => {
@@ -71,13 +72,111 @@ describe('Package Class (package.json)', () => {
   describe('class methods Package', () => {
     beforeEach(() => {
       jest.mock('../../utils/Package')
-      pkg = new Package({
-        name: 'test-app',
-        hasTs: false,
-        program
-      })
-      Package.mockClear()
+      pkg = new Package(initParams)
     })
+
+    test('.addTranspiler() with JS', () => {
+      pkg.addTranspiler()
+      expect(pkg.base.scripts.transpile).toEqual('babel ./server --out-dir dist --copy-files')
+    })
+    test('.addTranspiler() with TS', () => {
+      pkg.hasTs = true
+      pkg.addTranspiler()
+      expect(pkg.base.scripts.transpile).toEqual('tsc')
+      expect(pkg.base.nodemonConfig.ext).toEqual('ts')
+    })
+
+    test('.addLanguageDevDeps() with JS', () => {
+      jest.spyOn(pkg, 'addBaseJavascript')
+      pkg.addLanguageDevDeps()
+      expect(pkg.addBaseJavascript).toHaveBeenCalled()
+    })
+    test('.addLanguageDevDeps() with TS', () => {
+      pkg.hasTs = true
+      jest.spyOn(pkg, 'addBaseTypescript')
+      pkg.addLanguageDevDeps()
+      expect(pkg.addBaseTypescript).toHaveBeenCalled()
+    })
+
+    test('.addMiddlewares()', () => {
+      pkg.addMiddlewares()
+      const deps = Object.keys(pkg.base.dependencies)
+      Object.keys(pkg.middlewares).forEach(middleware => {
+        expect(deps).toContain(middleware)
+      })
+    })
+
+    test('.addDb() with sequelize JS', () => {
+      pkg.db = 'sequelize'
+      pkg.addDb()
+      expect(pkg).toHaveProperty('base.dependencies.mysql2')
+      expect(pkg).toHaveProperty('base.dependencies.sequelize')
+    })
+    test('.addDb() with sequelize TS', () => {
+      pkg.db = 'sequelize'
+      pkg.hasTs = true
+      pkg.addDb()
+      expect(pkg).toHaveProperty('base.dependencies.mysql2')
+      expect(pkg).toHaveProperty('base.dependencies.sequelize')
+      expect(pkg.base.devDependencies['@types/sequelize']).toBeDefined()
+    })
+    test('.addDb() with mongoose JS', () => {
+      pkg.db = 'mongo + mongoose'
+      pkg.addDb()
+      expect(pkg).toHaveProperty('base.dependencies.mongoose')
+    })
+    test('.addDb() with mongoose TS', () => {
+      pkg.db = 'mongo + mongoose'
+      pkg.hasTs = true
+      pkg.addDb()
+      expect(pkg).toHaveProperty('base.dependencies.mongoose')
+      expect(pkg.base.devDependencies['@types/mongoose']).toBeDefined()
+    })
+
+    test('.addCache() with no cache JS', () => {
+      pkg.addCache()
+      expect(pkg).not.toHaveProperty('base.dependencies.redis')
+    })
+    test('.addCache() with redis JS', () => {
+      pkg.cache = 'redis'
+      pkg.addCache()
+      expect(pkg).toHaveProperty('base.dependencies.redis')
+    })
+    test('.addCache() with redis TS', () => {
+      pkg.cache = 'redis'
+      pkg.hasTs = true
+      pkg.addCache()
+      expect(pkg).toHaveProperty('base.dependencies.redis')
+      expect(pkg.base.devDependencies['@types/redis']).toBeDefined()
+    })
+
+    test('.addLint() JS', () => {
+      pkg.addLint()
+      expect(pkg.base.devDependencies.eslint).toBeDefined()
+      expect(pkg.base.devDependencies['eslint-config-airbnb-base']).toBeDefined()
+      expect(pkg.base.devDependencies['eslint-plugin-import']).toBeDefined()
+      expect(pkg.base.devDependencies['eslint-plugin-import']).toBeDefined()
+      expect(pkg.base.scripts.lint).toEqual('eslint ./server')
+    })
+    test('.addLint() TS', () => {
+      pkg.hasTs = true
+      pkg.addLint()
+      expect(pkg.base.devDependencies.eslint).toBeDefined()
+      expect(pkg.base.devDependencies['eslint-config-airbnb-base']).toBeDefined()
+      expect(pkg.base.devDependencies['eslint-plugin-import']).toBeDefined()
+      expect(pkg.base.devDependencies['eslint-plugin-import']).toBeDefined()
+      expect(pkg.base.devDependencies['@typescript-eslint/eslint-plugin']).toBeDefined()
+      expect(pkg.base.devDependencies['@typescript-eslint/parser']).toBeDefined()
+      expect(pkg.base.devDependencies['eslint-config-airbnb-typescript']).toBeDefined()
+      expect(pkg.base.scripts.lint).toEqual('eslint ./server')
+    })
+
+    test('getter package', () => {
+      const result = pkg.package
+      expect(result).toEqual(pkg.base)
+    })
+
+    // I couldn't find where jest.mock('../module') works without import
     test('.init()', (done) => {
       const mockAddTranspiler = jest.fn().mockReturnThis()
       Package.prototype.addTranspiler = mockAddTranspiler
@@ -95,10 +194,6 @@ describe('Package Class (package.json)', () => {
       expect(pkg.addLint).toHaveBeenCalled()
       mockAddTranspiler.mockRestore()
       done()
-    })
-    test('.addTranspiler() with JS', () => {
-      pkg.addTranspiler()
-      expect(pkg.base.scripts.transpile).toEqual('babel ./server --out-dir dist --copy-files')
     })
   })
 })

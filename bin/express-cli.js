@@ -82,6 +82,20 @@ inquirer
       default: 'none'
     },
     {
+      when: function (response) {
+        return response.database === 'sequelize'
+      },
+      type: 'list',
+      name: 'sqlEngine',
+      message: 'Choose SQL engine',
+      choices: [
+        'MySQL',
+        'Postgres',
+        'MariaDB'
+      ],
+      default: 'MySQL'
+    },
+    {
       type: 'list',
       name: 'cache',
       message: 'Include cache:',
@@ -136,8 +150,8 @@ inquirer
           www.locals.db = hasTs
             ? www.locals.db = codeSnippets.sequelizeCodeTS
             : www.locals.db = codeSnippets.sequelizeCode
-          env.locals.db = codeSnippets.sequelizeEnvironmentVars
-          scaffold.createSequelizeFiles()
+          env.locals.db = codeSnippets.sequelizeEnvVars[program.sqlEngine]
+          scaffold.createSequelizeFiles(program.sqlEngine)
           break
         case 'mongo + mongoose':
           app.addDb('mongoose')

@@ -44,7 +44,7 @@ class Scaffold {
     tools.copyTemplate(`${this.tsjs}/controllers/userController.mongo.${this.tsjs}`, path.join(this.dir, `/server/controllers/userController.${this.tsjs}`))
     return this
   }
-  createSequelizeFiles () {
+  createSequelizeFiles (engine) {
     tools.mkdir(this.dir, 'server/config')
     tools.copyTemplateMulti(`${this.tsjs}/models/sequelize/config`, `${this.dir}/server/config`, `*.${this.tsjs}`)
     tools.mkdir(this.dir, 'server/models')

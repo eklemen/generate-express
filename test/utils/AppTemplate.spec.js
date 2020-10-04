@@ -1,7 +1,7 @@
 const AppTemplate = require('../../utils/AppTemplate')
 const codeSnippets = require('../../utils/code-snippets')
 const CoreTemplate = require('../../utils/CoreTemplate')
-jest.mock('../../utils/CoreTemplate')
+
 
 describe('CoreTemplate class', () => {
   let appTemplate
@@ -81,9 +81,9 @@ describe('CoreTemplate class', () => {
     )
   })
   // test('.addDb() with mongoose', () => {
-  //   let addModuleSpy = jest.spyOn(CoreTemplate.prototype, 'addModule')
+  //   appTemplate = new AppTemplate('app')
   //   appTemplate.addDb('mongoose')
-  //   expect(addModuleSpy).toHaveBeenCalledWith('mongoose', 'mongoose')
+  //   expect(addModuleMock).toHaveBeenCalledWith('mongoose', 'mongoose')
   //   // expect(appTemplate.locals.db).toBeDefined()
   // })
 })

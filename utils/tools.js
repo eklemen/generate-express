@@ -70,7 +70,6 @@ function mkdir (base, directory) {
  */
 
 function emptyDirectory (directory, fn) {
-  console.log(directory)
   fs.readdir(directory, function (err, files) {
     if (err && err.code !== 'ENOENT') throw err
     fn(!files || !files.length)
@@ -81,7 +80,6 @@ module.exports = {
   write,
   copyTemplate,
   copyTemplateMulti,
-  loadTemplate,
   mkdir,
   emptyDirectory
 }

@@ -29,6 +29,29 @@ DATABASE=database_dev
 HOST=127.0.0.1
 DB_PORT=3306
 DIALECT=mysql`,
+  sequelizeEnvVars: {
+    MySQL:
+`USERNAME=root
+PASSWORD=null
+DATABASE=database_dev
+HOST=127.0.0.1
+DB_PORT=3306
+DIALECT=mysql`,
+    Postgres:
+`USERNAME=root
+PASSWORD=null
+DATABASE=database_dev
+HOST=127.0.0.1
+DB_PORT=5432
+DIALECT=postgres`,
+    MariaDB:
+`USERNAME=root
+PASSWORD=null
+DATABASE=database_dev
+HOST=127.0.0.1
+DB_PORT=3306
+DIALECT=mariadb`
+  },
 
   mongoMongooseCode:
 `const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost/mydb';

@@ -75,6 +75,7 @@ class Pkg {
     this.tsBase = tsBase
     this.jsBase = jsBase
     this.db = program.database
+    this.sqlEngine = program.database === 'sequelize' && program.sqlEngine
     this.cache = program.cache !== 'none'
     this.view = program.view
     this.middlewares = middlewares
@@ -135,6 +136,21 @@ class Pkg {
     }
     return this
   }
+  addSqlEngine () {
+    switch (this.sqlEngine) {
+      case 'MySQL':
+        this.base.dependencies.mysql2 = '^1.6.4'
+        break
+      case 'Postgres':
+        this.base.dependencies.pg = '^8.3.3'
+        this.base.dependencies['pg-hstore'] = '^2.3.3'
+        break
+      case 'MariaDB':
+        this.base.dependencies.mariadb = '^2.4.2'
+        break
+    }
+    return this
+  }
   addDb () {
     switch (this.db) {
       case 'mongojs':
@@ -144,7 +160,7 @@ class Pkg {
         }
         break
       case 'sequelize':
-        this.base.dependencies.mysql2 = '^1.6.4'
+        this.addSqlEngine()
         // downgraded from v6 due to bugs
         this.base.dependencies.sequelize = '^5.x'
         if (this.hasTs) {

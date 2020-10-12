@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 
-var path = require('path')
-var readline = require('readline')
-var inquirer = require('inquirer')
-var chalk = require('chalk')
-var rimraf = require('rimraf')
-var execSync = require('child_process').execSync
+const path = require('path')
+const readline = require('readline')
+const inquirer = require('inquirer')
+const chalk = require('chalk')
+const rimraf = require('rimraf')
+const execSync = require('child_process').execSync
 
-var MODE_0755 = parseInt('0755', 8)
-var codeSnippets = require('../utils/code-snippets')
-var Pkg = require('../utils/Package')
-var tools = require('../utils/tools')
-var CoreTemplate = require('../utils/CoreTemplate')
-var AppTemplate = require('../utils/AppTemplate')
-var Scaffold = require('../utils/Scaffold')
+const MODE_0755 = parseInt('0755', 8)
+const codeSnippets = require('../utils/code-snippets')
+const Pkg = require('../utils/Package')
+const tools = require('../utils/tools')
+const CoreTemplate = require('../utils/CoreTemplate')
+const AppTemplate = require('../utils/AppTemplate')
+const Scaffold = require('../utils/Scaffold')
 
-var _exit = process.exit
+const _exit = process.exit
 
 // CLI
 let dirDefaultName = 'hello-world'

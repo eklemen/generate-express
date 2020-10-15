@@ -94,6 +94,7 @@ class Pkg {
       .addDb()
       .addCache()
       .addLint()
+      .addTestConfigs()
     return this
   }
   addTranspiler () {
@@ -198,6 +199,14 @@ class Pkg {
       this.base.devDependencies['eslint-config-airbnb-typescript'] = '^10.0.0'
     }
     return this
+  }
+  addTestConfigs () {
+    if (!this.hasTs) {
+      this.base.devDependencies.jest = '^25.5.4'
+      this.base.devDependencies.supertest = '^5.0.0'
+      this.base.scripts.test = 'jest'
+      this.base.scripts['test:watch'] = 'jest --watch'
+    }
   }
 }
 

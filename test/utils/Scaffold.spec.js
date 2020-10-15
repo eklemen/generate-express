@@ -197,5 +197,12 @@ describe('Scaffold Class', () => {
       scaffold.createGitIgnore(false)
       expect(tools.copyTemplate).not.toHaveBeenCalled()
     })
+    test('.createTestingFiles() with "mongoose" db', () => {
+      scaffold.createTestingFiles('mongoose')
+      expect(tools.mkdir).toHaveBeenCalledWith(scaffold.dir, 'tests/routes')
+      expect(tools.copyTemplate).toHaveBeenNthCalledWith(1, 'js/testFiles/mongo/hello.js', 'test-app/tests/routes/hello.spec.js')
+      expect(tools.copyTemplate).toHaveBeenNthCalledWith(2, 'js/testFiles/mongo/users.js', 'test-app/tests/routes/users.spec.js')
+      expect(tools.copyTemplate).toHaveBeenNthCalledWith(3, 'js/jestConfig.js', 'test-app/jest.config.js')
+    })
   })
 })

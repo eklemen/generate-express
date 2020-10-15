@@ -155,7 +155,9 @@ inquirer
           break
         case 'mongo + mongoose':
           app.addDb('mongoose')
-          scaffold.createMongooseFiles()
+          scaffold
+            .createMongooseFiles()
+            .createTestingFiles('mongoose')
           break
         default:
           scaffold.createDefaultControllerFiles()

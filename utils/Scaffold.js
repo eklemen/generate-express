@@ -58,6 +58,17 @@ class Scaffold {
     }
     return this
   }
+  createTestingFiles (db) {
+    if (!this.hasTs) {
+      tools.mkdir(this.dir, 'tests/routes')
+      if (db === 'mongoose') {
+        tools.copyTemplate(`${this.tsjs}/testFiles/mongo/hello.js`, path.join(this.dir, 'tests/routes/hello.spec.js'))
+        tools.copyTemplate(`${this.tsjs}/testFiles/mongo/users.js`, path.join(this.dir, 'tests/routes/users.spec.js'))
+      }
+      tools.copyTemplate(`${this.tsjs}/jestConfig.${this.tsjs}`, path.join(this.dir, `jest.config.js`))
+    }
+    return this
+  }
 }
 
 module.exports = Scaffold

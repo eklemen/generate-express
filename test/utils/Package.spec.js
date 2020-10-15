@@ -109,14 +109,12 @@ describe('Package Class (package.json)', () => {
     test('.addDb() with sequelize JS', () => {
       pkg.db = 'sequelize'
       pkg.addDb()
-      expect(pkg).toHaveProperty('base.dependencies.mysql2')
       expect(pkg).toHaveProperty('base.dependencies.sequelize')
     })
     test('.addDb() with sequelize TS', () => {
       pkg.db = 'sequelize'
       pkg.hasTs = true
       pkg.addDb()
-      expect(pkg).toHaveProperty('base.dependencies.mysql2')
       expect(pkg).toHaveProperty('base.dependencies.sequelize')
       expect(pkg.base.devDependencies['@types/sequelize']).toBeDefined()
     })
@@ -185,6 +183,7 @@ describe('Package Class (package.json)', () => {
       Package.prototype.addDb = jest.fn().mockReturnValue(pkg)
       Package.prototype.addCache = jest.fn().mockReturnValue(pkg)
       Package.prototype.addLint = jest.fn().mockReturnValue(pkg)
+      Package.prototype.addTestConfigs = jest.fn().mockReturnValue(pkg)
       pkg.init()
       expect(pkg.addTranspiler).toHaveBeenCalled()
       expect(pkg.addLanguageDevDeps).toHaveBeenCalled()
@@ -192,6 +191,7 @@ describe('Package Class (package.json)', () => {
       expect(pkg.addDb).toHaveBeenCalled()
       expect(pkg.addCache).toHaveBeenCalled()
       expect(pkg.addLint).toHaveBeenCalled()
+      expect(pkg.addTestConfigs).toHaveBeenCalled()
       mockAddTranspiler.mockRestore()
       done()
     })

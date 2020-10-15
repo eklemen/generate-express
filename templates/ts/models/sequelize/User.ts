@@ -1,12 +1,12 @@
 import { DataTypes, Model } from 'sequelize';
-import sequelize from './';
+import sequelize from '.';
 
 interface UserAttributes {
   id: number;
   name: string;
 }
 
-class User extends Model<UserAttributes>{}
+class User extends Model<UserAttributes> {}
 
 User.init(
     {
@@ -21,7 +21,7 @@ User.init(
       },
     },
     {
-      tableName: "Users",
+      tableName: 'Users',
       sequelize,
     }
 );

@@ -1,24 +1,21 @@
 #!/usr/bin/env node
 
-var ejs = require('ejs')
-var fs = require('fs')
-var minimatch = require('minimatch')
-var mkdirp = require('mkdirp')
-var path = require('path')
-var readline = require('readline')
-var util = require('util')
-var inquirer = require('inquirer')
-var chalk = require('chalk')
-var rimraf = require('rimraf')
-var execSync = require('child_process').execSync
+const path = require('path')
+const readline = require('readline')
+const inquirer = require('inquirer')
+const chalk = require('chalk')
+const rimraf = require('rimraf')
+const execSync = require('child_process').execSync
 
-var MODE_0666 = parseInt('0666', 8)
-var MODE_0755 = parseInt('0755', 8)
-var TEMPLATE_DIR = path.join(__dirname, '..', 'templates')
-var codeSnippets = require('../js/code-snippets')
-var Pkg = require('../js/Package')
+const MODE_0755 = parseInt('0755', 8)
+const codeSnippets = require('../utils/code-snippets')
+const Pkg = require('../utils/Package')
+const tools = require('../utils/tools')
+const CoreTemplate = require('../utils/CoreTemplate')
+const AppTemplate = require('../utils/AppTemplate')
+const Scaffold = require('../utils/Scaffold')
 
-var _exit = process.exit
+const _exit = process.exit
 
 // CLI
 let dirDefaultName = 'hello-world'
@@ -54,7 +51,6 @@ inquirer
       message: 'Include a .gitignore?',
       default: true
     },
-    // TODO: add dynamodb
     {
       when: function (response) {
         return isTs(response.typescript)
@@ -87,23 +83,17 @@ inquirer
     },
     {
       when: function (response) {
-        // Only ask for view engine if Javascript is selected
-        return isJs(response.typescript)
+        return response.database === 'sequelize'
       },
       type: 'list',
-      name: 'view',
-      message: 'View engine or just API:',
+      name: 'sqlEngine',
+      message: 'Choose SQL engine',
       choices: [
-        'none - api only',
-        'dust',
-        'ejs',
-        'hbs',
-        'hjs',
-        'pug',
-        'twig',
-        'vash'
+        'MySQL',
+        'Postgres',
+        'MariaDB'
       ],
-      default: 'none'
+      default: 'MySQL'
     },
     {
       type: 'list',
@@ -119,32 +109,11 @@ inquirer
     const {
       dir
     } = program
-    const hasView = program.view !== 'none - api only'
     const hasTs = isTs(program.typescript)
     const tsjs = hasTs ? 'ts' : 'js'
 
     if (!exit.exited) {
       main()
-    }
-
-    /**
-     * Copy file from template directory.
-     */
-
-    function copyTemplate (from, to) {
-      write(to, fs.readFileSync(path.join(TEMPLATE_DIR, from), 'utf-8'))
-    }
-
-    /**
-     * Copy multiple files from template directory.
-     */
-
-    function copyTemplateMulti (fromDir, toDir, nameGlob) {
-      fs.readdirSync(path.join(TEMPLATE_DIR, fromDir))
-        .filter(minimatch.filter(nameGlob, { matchBase: true }))
-        .forEach(function (name) {
-          copyTemplate(path.join(fromDir, name), path.join(toDir, name))
-        })
     }
 
     /**
@@ -156,260 +125,57 @@ inquirer
 
     function createApplication (name, directory) {
       // Package
-      const pkg = new Pkg({ name, hasTs, hasView, program }).init()
+      const pkg = new Pkg({ name, hasTs, program }).init()
 
-      const app = loadTemplate(`${tsjs}/app.${tsjs}`)
-      const www = loadTemplate(`${tsjs}/www`)
-      const env = loadTemplate(`${tsjs}/.env`)
+      const scaffold = new Scaffold({ hasTs, dir, directory, tsjs })
+        .init()
+        .createRouteFiles()
+        .createGitIgnore(program.gitignore)
+      const app = new AppTemplate(`${tsjs}/app.${tsjs}`)
+      const www = new CoreTemplate(`${tsjs}/www`)
+      const env = new CoreTemplate(`${tsjs}/.env`)
 
-      // App name
-      www.locals.name = name
-
-      // App modules
-      app.locals.localModules = Object.create(null)
-      app.locals.modules = Object.create(null)
-      app.locals.mounts = []
-      app.locals.uses = []
-
-      // Request logger
-      app.locals.modules.logger = 'morgan'
-      app.locals.uses.push("logger('dev')")
-
-      // Body parsers
-      app.locals.uses.push('express.json()')
-      app.locals.uses.push('express.urlencoded({ extended: false })')
-
-      // Cookie parser
-      app.locals.modules.cookieParser = 'cookie-parser'
-      app.locals.uses.push('cookieParser()')
-
-      // Helmet
-      app.locals.modules.helmet = 'helmet'
-      app.locals.uses.push('helmet()')
-
-      // CORS
-      app.locals.modules.cors = 'cors'
-      app.locals.uses.push('cors()')
-
-      // Compression middleware
-      app.locals.modules.compression = 'compression'
-      app.locals.uses.push('compression()')
-
-      if (directory !== '.') {
-        mkdir(directory, '.')
-      }
-
-      if (hasView) {
-        // Copy view templates
-        mkdir(directory, 'public')
-        mkdir(directory, 'public/javascripts')
-        mkdir(directory, 'public/images')
-        mkdir(directory, 'public/stylesheets')
-        mkdir(directory, 'server/views')
-        switch (program.view) {
-          case 'dust':
-            copyTemplateMulti('views', directory + '/server/views', '*.dust')
-            break
-          case 'ejs':
-            copyTemplateMulti('views', directory + '/server/views', '*.ejs')
-            break
-          case 'hbs':
-            copyTemplateMulti('views', directory + '/server/views', '*.hbs')
-            break
-          case 'hjs':
-            copyTemplateMulti('views', directory + '/server/views', '*.hjs')
-            break
-          case 'jade':
-            copyTemplateMulti('views', directory + '/server/views', '*.jade')
-            break
-          case 'pug':
-            copyTemplateMulti('views', directory + '/server/views', '*.pug')
-            break
-          case 'twig':
-            copyTemplateMulti('views', directory + '/server/views', '*.twig')
-            break
-          case 'vash':
-            copyTemplateMulti('views', directory + '/server/views', '*.vash')
-            break
-          case 'none - api only':
-            break
-        }
-      }
-
-      if (hasView) {
-        // copy css templates
-        switch (program.css) {
-          case 'less':
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.less')
-            break
-          case 'stylus':
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.styl')
-            break
-          case 'compass':
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.scss')
-            break
-          case 'sass':
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.sass')
-            break
-          default:
-            copyTemplateMulti('css', directory + '/public/stylesheets', '*.css')
-            break
-        }
-      } else {
-        console.log('Since api only was chosen, no css linking occurred.')
-        console.log('To add css, create /public/stylesheets/style.css')
-      }
-
-      // copy route templates
-      mkdir(directory, 'server/routes')
-      // TODO: rename the javascript route file names to match ts (helloRoute)
-      if (hasTs) {
-        copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
-        copyTemplate(`${tsjs}/routes/hello.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
-      } else {
-        copyTemplate(`${tsjs}/routes/users.${tsjs}`, path.join(dir, `/server/routes/users.${tsjs}`))
-        if (hasView && !hasTs) {
-          copyTemplate(`${tsjs}/routes/index.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
-        } else {
-          copyTemplate(`${tsjs}/routes/apiOnly.${tsjs}`, path.join(dir, `/server/routes/index.${tsjs}`))
-        }
-      }
+      app.addMiddlewares()
+      app.addRoutes()
 
       // Database
-      www.locals.db = false
-      app.locals.db = false
-      env.locals.db = false
-      mkdir(dir, 'server/controllers')
+      tools.mkdir(dir, 'server/controllers')
       switch (program.database) {
         case 'mongojs':
-          app.locals.modules.mongojs = 'mongojs'
-          app.locals.db = codeSnippets.mongoJsCode
-          copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
+          app.addDb(program.database)
+          scaffold.createDefaultControllerFiles()
           break
         case 'sequelize':
           // TODO: prompt for which flavor of SQL (mysql/pg/maria/sqlite)
-          if (hasTs) {
-            www.locals.db = codeSnippets.sequelizeCodeTS
-          } else {
-            www.locals.db = codeSnippets.sequelizeCode
-          }
-          env.locals.db = codeSnippets.sequelizeEnvironmentVars
-
-          mkdir(dir, 'server/config')
-          copyTemplateMulti(`${tsjs}/models/sequelize/config`, `${dir}/server/config`, `*.${tsjs}`)
-          mkdir(dir, 'server/models')
-          copyTemplateMulti(`${tsjs}/models/sequelize`, `${dir}/server/models`, `*.${tsjs}`)
-          copyTemplate(`${tsjs}/controllers/userController.sql.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
+          www.locals.db = hasTs
+            ? www.locals.db = codeSnippets.sequelizeCodeTS
+            : www.locals.db = codeSnippets.sequelizeCode
+          env.locals.db = codeSnippets.sequelizeEnvVars[program.sqlEngine]
+          scaffold.createSequelizeFiles(program.sqlEngine)
           break
         case 'mongo + mongoose':
-          app.locals.modules.mongoose = 'mongoose'
-          app.locals.db = codeSnippets.mongoMongooseCode
-          mkdir(dir, 'server/models')
-          copyTemplateMulti(`${tsjs}/models/mongoose`, `${dir}/server/models`, `*.${tsjs}`)
-          copyTemplate(`${tsjs}/controllers/userController.mongo.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
+          app.addDb('mongoose')
+          scaffold
+            .createMongooseFiles()
+            .createTestingFiles('mongoose')
           break
         default:
-          copyTemplate(`${tsjs}/controllers/userController.default.${tsjs}`, path.join(dir, `/server/controllers/userController.${tsjs}`))
+          scaffold.createDefaultControllerFiles()
       }
 
       // Caching
-      app.locals.cache = false
-      env.locals.cache = false
       switch (program.cache) {
         case 'redis':
-          app.locals.modules.redis = 'redis'
-          app.locals.cache = codeSnippets.redisCode
+          app.addCache(program.cache)
           env.locals.cache = codeSnippets.redisEnvironmentVars
       }
 
-      if (program.view) {
-        // CSS Engine support
-        switch (program.css) {
-          case 'compass':
-            app.locals.modules.compass = 'node-compass'
-            app.locals.uses.push("compass({ mode: 'expanded' })")
-            // pkg.dependencies['node-compass'] = '0.2.3'
-            break
-          case 'less':
-            app.locals.modules.lessMiddleware = 'less-middleware'
-            app.locals.uses.push("lessMiddleware(path.join(__dirname, 'public'))")
-            // pkg.dependencies['less-middleware'] = '~2.2.1'
-            break
-          case 'sass':
-            app.locals.modules.sassMiddleware = 'node-sass-middleware'
-            app.locals.uses.push("sassMiddleware({\n  src: path.join(__dirname, 'public'),\n  dest: path.join(__dirname, 'public'),\n  indentedSyntax: true, // true = .sass and false = .scss\n  sourceMap: true\n})")
-            // pkg.dependencies['node-sass-middleware'] = '0.11.0'
-            break
-          case 'stylus':
-            app.locals.modules.stylus = 'stylus'
-            app.locals.uses.push("stylus.middleware(path.join(__dirname, 'public'))")
-            // pkg.dependencies['stylus'] = '0.54.5'
-            break
-        }
-      }
-
-      // Index router mount
-      // TODO: make routes/index only export
-      // app.locals.localModules['* as routes'] = './routes/index'
-
-      app.locals.localModules.helloRouter = './routes/index'
-      app.locals.mounts.push({ path: '/api', code: 'helloRouter' })
-
-      // User router mount
-      app.locals.localModules.usersRouter = './routes/users'
-      app.locals.mounts.push({ path: '/api/users', code: 'usersRouter' })
-
-      // Template support
-      switch (program.view) {
-        case 'dust':
-          app.locals.modules.adaro = 'adaro'
-          app.locals.view = {
-            engine: 'dust',
-            render: 'adaro.dust()'
-          }
-          break
-        case 'ejs':
-          app.locals.view = { engine: 'ejs' }
-          break
-        case 'hbs':
-          app.locals.view = { engine: 'hbs' }
-          break
-        case 'hjs':
-          app.locals.view = { engine: 'hjs' }
-          break
-        case 'jade':
-          app.locals.view = { engine: 'jade' }
-          break
-        case 'pug':
-          app.locals.view = { engine: 'pug' }
-          break
-        case 'twig':
-          app.locals.view = { engine: 'twig' }
-          break
-        case 'vash':
-          app.locals.view = { engine: 'vash' }
-          break
-        default:
-          app.locals.view = false
-          break
-      }
-
-      if (program.gitignore) {
-        copyTemplate(`${tsjs}/gitignore`, path.join(dir, '.gitignore'))
-      }
-
-      // write files
-      write(path.join(dir, `server/app.${tsjs}`), app.render())
-      write(path.join(dir, 'package.json'), JSON.stringify(pkg.package, null, 2) + '\n')
-      if (hasTs) {
-        copyTemplate('ts/tsconfig.json', path.join(dir, 'tsconfig.json'))
-        copyTemplate('ts/tslint.json', path.join(dir, 'tslint.json'))
-      } else {
-        copyTemplate('js/babelrc', path.join(dir, '.babelrc'))
-      }
-      mkdir(dir, 'server/bin')
-      write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
-      write(path.join(dir, '.env'), env.render())
+      // Put it all together: write files based on configs
+      scaffold.createCoreFiles(pkg.package)
+      // build template.ejs files for app, www, env
+      tools.write(path.join(dir, `server/app.${tsjs}`), app.render())
+      tools.write(path.join(dir, `server/bin/www.${tsjs}`), www.render(), MODE_0755)
+      tools.write(path.join(dir, '.env'), env.render())
       npmInstall()
       gitInit()
       printInfoLogs()
@@ -460,21 +226,6 @@ inquirer
     }
 
     /**
-     * Check if the given directory `dir` is empty.
-     *
-     * @param {String} dir
-     * @param {Function} fn
-     */
-
-    function emptyDirectory (directory, fn) {
-      console.log(directory)
-      fs.readdir(directory, function (err, files) {
-        if (err && err.code !== 'ENOENT') throw err
-        fn(!files || !files.length)
-      })
-    }
-
-    /**
      * Graceful exit for async STDIO
      */
 
@@ -498,26 +249,6 @@ inquirer
       })
 
       done()
-    }
-
-    /**
-     * Load template file.
-     */
-
-    function loadTemplate (name) {
-      const contents = fs.readFileSync(path.join(__dirname, '..', 'templates', (name + '.ejs')), 'utf-8')
-      const locals = Object.create(null)
-
-      function render () {
-        return ejs.render(contents, locals, {
-          escape: util.inspect
-        })
-      }
-
-      return {
-        locals: locals,
-        render: render
-      }
     }
 
     /**
@@ -545,7 +276,7 @@ inquirer
       }
 
       // Generate application
-      emptyDirectory(destinationPath, function (empty) {
+      tools.emptyDirectory(destinationPath, function (empty) {
         if (empty || program.force) {
           createApplication(appName, destinationPath)
         } else {
@@ -565,30 +296,6 @@ inquirer
       })
     }
 
-    /**
-     * Make the given dir relative to base.
-     *
-     * @param {string} base
-     * @param {string} dir
-     */
-
-    function mkdir (base, directory) {
-      const loc = path.join(base, directory)
-      console.log(chalk.cyan('   create : ' + chalk.green(loc + path.sep)))
-      mkdirp.sync(loc, MODE_0755)
-    }
-
-    /**
-     * echo str > file.
-     *
-     * @param {String} file
-     * @param {String} str
-     */
-
-    function write (file, str, mode) {
-      fs.writeFileSync(file, str, { mode: mode || MODE_0666 })
-      console.log(chalk.cyan('   create : ' + chalk.green(file)))
-    }
     process.exit = exit
   })
   .catch(error => {

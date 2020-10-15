@@ -1,7 +1,7 @@
 import { Options, Dialect } from 'sequelize';
 import dotenv from 'dotenv';
-dotenv.config();
 
+dotenv.config();
 const envVars = process.env;
 
 const config: Options = {
@@ -15,12 +15,12 @@ const config: Options = {
 
 type TEnvConfigs = {
   [key: string]: Options
-}
+};
 
 const envConfigs: TEnvConfigs = {
   development: config,
   test: config,
   production: config,
-}
+};
 
 export default envConfigs;

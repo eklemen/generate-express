@@ -1,8 +1,8 @@
-import mongoose, {Schema, Document} from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
 export type UserDocument = Document & {
     name: string;
-}
+};
 
 const UserSchema: Schema = new Schema({
     name: {
@@ -10,5 +10,5 @@ const UserSchema: Schema = new Schema({
     }
 });
 
-const User = mongoose.model<UserDocument>("User", UserSchema);
+const User = mongoose.model<UserDocument>('User', UserSchema);
 export default User;

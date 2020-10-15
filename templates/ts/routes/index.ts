@@ -1,2 +1,2 @@
-export { default as helloRoute} from './hello';
-export { default as usersRoute} from './users';
+export { default as hello } from './hello';
+export { default as users } from './users';

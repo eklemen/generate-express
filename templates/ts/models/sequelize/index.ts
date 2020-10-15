@@ -1,6 +1,7 @@
-import { Sequelize } from 'sequelize'
+import { Sequelize } from 'sequelize';
 import Configs from '../config/config';
-const env = process.env.NODE_ENV || "development";
+
+const env = process.env.NODE_ENV || 'development';
 const config = Configs[env];
 
 const sequelize = new Sequelize(
@@ -8,6 +9,6 @@ const sequelize = new Sequelize(
     config.username,
     config.password,
     config
-)
+);
 
-export default sequelize
+export default sequelize;

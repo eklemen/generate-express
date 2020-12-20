@@ -9,14 +9,14 @@ const db = mongojs(dbUri, collections);`,
 
   sequelizeCode:
 `// Run sequelize before listen
-db.sequelize.sync({ force: true }).then(() => {
+db.sequelize.sync().then(() => {
   app.listen(port, () => {
     console.log(\`App listening on PORT \${port}\`);
   });
 });`,
   sequelizeCodeTS:
     `// Run sequelize before listen
-db.sync({ force: true }).then(() => {
+db.sync().then(() => {
   app.listen(port, () => {
     console.log(\`App listening on PORT \${port}\`);
   });
